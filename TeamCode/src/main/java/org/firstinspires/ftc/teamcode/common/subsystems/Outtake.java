@@ -22,8 +22,8 @@ public class Outtake extends SubsystemBase {
 
         flywheel = OpModeReference.getInstance().getHardwareMap().get(DcMotorEx.class, "Flywheel");
 
-        flywheel.setVelocity();
-        flywheel.setVelocityPIDFCoefficients();
+        flywheel.setVelocity(0);
+        flywheel.setVelocityPIDFCoefficients(0, 0, 0, 0);
 
 
         globals = OpModeReference.getInstance().globalsSubSystem;
@@ -48,6 +48,6 @@ public class Outtake extends SubsystemBase {
     }
 
     public InstantCommand runFlywheel() {
-        // PID VELOCITY
+        return new InstantCommand();
     }
 }
