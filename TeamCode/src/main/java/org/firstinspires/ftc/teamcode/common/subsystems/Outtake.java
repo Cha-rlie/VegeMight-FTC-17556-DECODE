@@ -5,8 +5,10 @@ import com.arcrobotics.ftclib.command.PerpetualCommand;
 import com.arcrobotics.ftclib.command.RunCommand;
 import com.arcrobotics.ftclib.command.SubsystemBase;
 import com.arcrobotics.ftclib.hardware.motors.Motor;
+import com.arcrobotics.ftclib.hardware.motors.MotorEx;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
+import com.qualcomm.robotcore.hardware.Servo;
 
 import org.firstinspires.ftc.teamcode.common.OpModeReference;
 import org.firstinspires.ftc.teamcode.common.util.Globals;
@@ -14,16 +16,18 @@ import org.firstinspires.ftc.teamcode.common.util.UpdateAndPowerScheduler;
 
 
 public class Outtake extends SubsystemBase {
-    public DcMotorEx flywheel;
+    public MotorEx flywheel;
+    Servo hood;
     Globals globals;
     UpdateAndPowerScheduler updateAndPowerScheduler;
 
     public Outtake() {
 
-        flywheel = OpModeReference.getInstance().getHardwareMap().get(DcMotorEx.class, "Flywheel");
+        flywheel = OpModeReference.getInstance().getHardwareMap().get(MotorEx.class, "Flywheel");
 
-        flywheel.setVelocity();
-        flywheel.setVelocityPIDFCoefficients();
+        flywheel.setRunMode(Motor.RunMode.VelocityControl);
+        flywheel.setFeedforwardCoefficients(0.05,0.01,0.31);
+
 
 
         globals = OpModeReference.getInstance().globalsSubSystem;
@@ -36,18 +40,12 @@ public class Outtake extends SubsystemBase {
         return new RunCommand(()->{
             if (updateAndPowerScheduler.outtakeUpdate) {
                 if (!updateAndPowerScheduler.powerOuttake) {
-                    flywheel.setMotorDisable();
+                    //disable
                 } else {
-                    flywheel.setMotorEnable();
+                    //enable
                 }
                 updateAndPowerScheduler.outtakeUpdate=false;
             }
-
-            flywheel.setPower(1);
         });
-    }
-
-    public InstantCommand runFlywheel() {
-        // PID VELOCITY
     }
 }
