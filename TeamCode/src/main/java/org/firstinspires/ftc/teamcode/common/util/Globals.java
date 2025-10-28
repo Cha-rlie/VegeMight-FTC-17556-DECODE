@@ -15,7 +15,6 @@ public class Globals extends SubsystemBase {
     public static final Globals INSTANCE = new Globals();
     public static boolean isSampleModeTrue = true;
     public boolean updateRobotStateTrue = true;
-    public boolean liftAcceptState = false;
     public boolean intakeAcceptState = false;
 
     // Declare the global variables
@@ -100,7 +99,6 @@ public class Globals extends SubsystemBase {
     public void periodic() {
         OpModeReference.getInstance().getTelemetry().addData("Robot State", robotState);
         OpModeReference.getInstance().getTelemetry().addData("Update Robot State", updateRobotStateTrue);
-        OpModeReference.getInstance().getTelemetry().addData("Lift Accepted New State?", liftAcceptState);
         OpModeReference.getInstance().getTelemetry().addData("isSampleTrue", isSampleModeTrue);
     }
 

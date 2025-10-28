@@ -28,24 +28,17 @@ public class Limelight extends SubsystemBase {
         OpModeReference.getInstance().getTelemetry().addData("Required Total LL Extension", requiredTotalExtension);
     }
 
+
+
     public void init(){
         limelight.start();
     }
 
-    public InstantCommand storeLimelightValue(){
+    public InstantCommand detectObelisk(){
         return new InstantCommand(()-> {
             LLResult result = limelight.getLatestResult();
-            requiredTotalExtension= (int) ((((limelightHeight-sampleHeight)/Math.tan(Math.toRadians(limelightAngle-result.getTy())))-15.625)/0.0425);
-            possibleadjustmentValue = (int) requiredTotalExtension-OpModeReference.getInstance().liftSubSystem.RTP;
             if (result != null) {
-                if (result.isValid() && requiredTotalExtension <800){
-                    OpModeReference.getInstance().getTelemetry().addData("Req ext",requiredTotalExtension);
-                    OpModeReference.getInstance().getTelemetry().addData("ty", result.getTy());
-                    storedadjustmentValue = (int) possibleadjustmentValue;
-                    OpModeReference.getInstance().getTelemetry().addData("Attempted extension", possibleadjustmentValue);
-                } else if (result.isValid()){
-                    storedadjustmentValue = 800-OpModeReference.getInstance().liftSubSystem.RTP;
-                    OpModeReference.getInstance().getTelemetry().addData("Attempted extension", possibleadjustmentValue);
+                if (result.isValid()){
                 } else {
                     OpModeReference.getInstance().getTelemetry().addLine("Invalid Result");
                 }
@@ -54,15 +47,6 @@ public class Limelight extends SubsystemBase {
             }
         });
     }
-
-    public InstantCommand extensionLimelight(){
-        return new InstantCommand(()-> {
-            if (OpModeReference.getInstance().globalsSubSystem.getRobotState() == RobotState.INTAKE) {
-                OpModeReference.getInstance().liftSubSystem.adjustment = storedadjustmentValue;
-            }
-        });
-    }
-
 
 
 

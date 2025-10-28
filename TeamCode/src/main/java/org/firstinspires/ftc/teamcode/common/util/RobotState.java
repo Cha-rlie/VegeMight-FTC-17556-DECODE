@@ -6,5 +6,5 @@ public enum RobotState {
     REJECT,
     INTAKE,
     OUTTAKE,
-    PARKNOASCENT
+    PARK
 }

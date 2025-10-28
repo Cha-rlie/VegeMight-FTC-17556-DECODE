@@ -9,15 +9,15 @@ import org.firstinspires.ftc.teamcode.common.OpModeReference;
 public class UpdateAndPowerScheduler extends SubsystemBase {
     public boolean powerIntake = false;
     public boolean powerOuttake = false;
-    public boolean powerLift = false;
+    public boolean powerTransfer = false;
 
     public boolean intakeUpdate = false;
     public boolean outtakeUpdate = false;
-    public boolean liftUpdate= false;
+    public boolean transferUpdate= false;
 
     public boolean intakeBusy = false;
     public boolean outtakeBusy = false;
-    public boolean liftBusy = false;
+    public boolean transferBusy = false;
 
     public boolean robotUpdate = false;
     public boolean robotBusy = false;
@@ -34,18 +34,22 @@ public class UpdateAndPowerScheduler extends SubsystemBase {
                 case IDLE:
                     powerIntake = false;
                     powerOuttake = false;
+                    powerTransfer = false;
                 case REJECT:
                 case INIT:
                     powerOuttake = true;
                     powerIntake = true;
+                    powerTransfer = false;
                 case OUTTAKE:
                     powerIntake = false;
                     powerOuttake = true;
+                    powerTransfer = true;
                 case INTAKE:
                     powerIntake = true;
                     powerOuttake = false;
+                    powerTransfer = true;
             }
-            if (intakeBusy && outtakeBusy && liftBusy) {
+            if (intakeBusy && outtakeBusy && transferBusy) {
                 robotBusy=true;
             } else {
                 robotBusy=false;
@@ -53,7 +57,7 @@ public class UpdateAndPowerScheduler extends SubsystemBase {
             if (robotUpdate) {
                 intakeUpdate=true;
                 outtakeUpdate=true;
-                liftUpdate=true;
+                transferUpdate=true;
                 robotUpdate=false;
             }
         });
@@ -71,9 +75,9 @@ public class UpdateAndPowerScheduler extends SubsystemBase {
         });
     }
 
-    public InstantCommand liftUpdate(){
+    public InstantCommand transferUpdate(){
         return new InstantCommand(()->{
-           liftUpdate = true;
+           transferUpdate = true;
         });
     }
 

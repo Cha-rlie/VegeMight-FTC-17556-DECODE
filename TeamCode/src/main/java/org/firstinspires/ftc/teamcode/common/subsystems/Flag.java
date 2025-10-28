@@ -34,7 +34,7 @@ public class Flag extends SubsystemBase {
 
     public RunCommand whenParkFlagExtendo() {
         return new RunCommand(() -> {
-            if(globals.getRobotState() == RobotState.PARKNOASCENT) {
+            if(globals.getRobotState() == RobotState.PARK) {
                 flag.setPosition(0);
             } else {
                 flag.setPosition(0.55);
