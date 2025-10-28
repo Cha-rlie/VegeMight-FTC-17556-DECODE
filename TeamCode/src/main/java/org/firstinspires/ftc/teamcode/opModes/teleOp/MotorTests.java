@@ -27,5 +27,7 @@ public class MotorTests extends OpMode {
         motor1.setPower(turretLaunchPower);
         motor2.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         motor2.setPower(intakePower);
+        telemetry.addData("Launch Velocity", motor1.getVelocity());
+        telemetry.update();
     }
 }
