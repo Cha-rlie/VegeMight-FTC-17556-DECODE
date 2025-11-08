@@ -1,8 +1,10 @@
 package org.firstinspires.ftc.teamcode.common.subsystems;
 
 import com.arcrobotics.ftclib.command.CommandScheduler;
+import com.arcrobotics.ftclib.command.InstantCommand;
 import com.arcrobotics.ftclib.command.PerpetualCommand;
 import com.arcrobotics.ftclib.command.RunCommand;
+import com.arcrobotics.ftclib.command.SequentialCommandGroup;
 import com.arcrobotics.ftclib.command.SubsystemBase;
 import com.arcrobotics.ftclib.command.WaitCommand;
 import com.arcrobotics.ftclib.hardware.motors.CRServo;
@@ -19,6 +21,7 @@ public class Transfer extends SubsystemBase {
     Globals globals;
     
     private double lastPower = 0;
+    public boolean override = false;
 
     public Transfer() {
         CommandScheduler.getInstance().registerSubsystem(this);
@@ -26,8 +29,6 @@ public class Transfer extends SubsystemBase {
         transferL = new CRServo(OpModeReference.getInstance().getHardwareMap(), "TL");
         transferR = new CRServo(OpModeReference.getInstance().getHardwareMap(), "TR");
         transferL.setInverted(true);
-        //transferL.set(0);
-        //transferR.set(0);
         updateAndPowerScheduler = OpModeReference.getInstance().updateAndPowerScheduler;
 
         setDefaultCommand(new PerpetualCommand(defaultCommand()));
@@ -37,31 +38,42 @@ public class Transfer extends SubsystemBase {
         return new RunCommand(()->{
            switch(globals.getRobotState()) {
                case INTAKE:
-               case INIT:
-                    transfer(1);
                case TRANSFER:
-                   transfer(1);
+                   if (!override) {
+                       transferPower(0.7).schedule();
+                   }
+                    break;
                case OUTTAKE:
-                   transfer(0);
+                   if (!override) {
+                       transferPower(0).schedule();
+                   }
+                   break;
+               default:
+                   break;
            }
         }, this);
     }
 
-    public RunCommand transfer() {
-        return new RunCommand(()->{
-            transfer(1);
-            new WaitCommand(2000);
-            transfer(0);
+    public SequentialCommandGroup transfer() {
+        return new SequentialCommandGroup(
+            new InstantCommand(()->override = true).andThen(),
+            transferPower(1),
+            new WaitCommand(500),
+            transferPower(0),
+            new InstantCommand(()->override = false)
+        );
+    }
+
+
+
+
+    public InstantCommand transferPower(double power) {
+        return new InstantCommand(()->{
+            if (power != lastPower) {
+                transferL.set(power);
+                transferR.set(power);
+                lastPower = power;
+            }
         });
     }
-    
-    public void transfer(double power) {
-        if (power != lastPower) {
-            transferL.set(power);
-            transferR.set(power);
-            lastPower = power;
-        }
-    }
-
-
 }
