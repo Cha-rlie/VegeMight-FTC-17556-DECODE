@@ -2,6 +2,7 @@ package org.firstinspires.ftc.teamcode.common.subsystems;
 
 import com.arcrobotics.ftclib.command.CommandBase;
 import com.arcrobotics.ftclib.command.InstantCommand;
+import com.arcrobotics.ftclib.command.PerpetualCommand;
 import com.arcrobotics.ftclib.command.SubsystemBase;
 import com.arcrobotics.ftclib.drivebase.MecanumDrive;
 import com.arcrobotics.ftclib.hardware.motors.Motor;
@@ -35,11 +36,14 @@ public class DriveTrain extends SubsystemBase {
     public void periodic() {
         //driveTrain.driveRobotCentric(OpModeReference.getInstance().getGamePad1().getLeftX(), OpModeReference.getInstance().getGamePad1().getLeftY(), OpModeReference.getInstance().getGamePad1().getRightX());
         OpModeReference.getInstance().getTelemetry().addData("Velocity Adjuster", velocityAdjuster);
-        if (OpModeReference.getInstance().globalsSubSystem.getRobotState() == RobotState.INTAKE || OpModeReference.getInstance().globalsSubSystem.getRobotState() == RobotState.INTAKE || OpModeReference.getInstance().globalsSubSystem.getRobotState() == RobotState.INTAKE) {
+        if (OpModeReference.getInstance().globalsSubSystem.getRobotState() == RobotState.INTAKE) {
             velocityAdjuster = 0.7;
         } else {
             velocityAdjuster = 1;
         }
+        OpModeReference.getInstance().getTelemetry().addData("Robot Driving Automatically", OpModeReference.getInstance().globalsSubSystem.robotAutomaticallyMoving);
+        //TODO: print position of bot
+        //OpModeReference.getInstance().getTelemetry().addData("Location");
         //OpModeReference.getInstance().getTelemetry().addData("FL Current", FL.motorEx.getCurrent(CurrentUnit.MILLIAMPS));
         //OpModeReference.getInstance().getTelemetry().addData("FL Current", FR.motorEx.getCurrent(CurrentUnit.MILLIAMPS));
         //OpModeReference.getInstance().getTelemetry().addData("FL Current", BL.motorEx.getCurrent(CurrentUnit.MILLIAMPS));

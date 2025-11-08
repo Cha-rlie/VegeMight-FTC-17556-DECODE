@@ -31,17 +31,14 @@ public class UpdateAndPowerScheduler extends SubsystemBase {
     public RunCommand updatePower() {
         return new RunCommand(() -> {
             switch (globals.getRobotState()) {
-                case IDLE:
-                    powerIntake = false;
+                case TRANSFER:
+                    powerIntake = true;
                     powerOuttake = false;
-                    powerTransfer = false;
+                    powerTransfer = true;
                 case REJECT:
                 case INIT:
-                    powerOuttake = true;
-                    powerIntake = true;
-                    powerTransfer = false;
                 case OUTTAKE:
-                    powerIntake = false;
+                    powerIntake = true;
                     powerOuttake = true;
                     powerTransfer = true;
                 case INTAKE:

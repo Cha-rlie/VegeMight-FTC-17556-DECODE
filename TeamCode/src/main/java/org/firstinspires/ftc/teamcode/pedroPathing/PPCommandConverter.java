@@ -1,7 +1,8 @@
-package org.firstinspires.ftc.teamcode.pedroPathing;//package org.firstinspires.ftc.teamcode.pedroPathing;
+//package org.firstinspires.ftc.teamcode.pedroPathing;
 //
 //import com.arcrobotics.ftclib.command.CommandBase;
 //import com.arcrobotics.ftclib.command.Subsystem;
+//import com.bylazar.panels.Panels;
 //
 //import org.firstinspires.ftc.robotcore.external.Telemetry;
 //import org.firstinspires.ftc.teamcode.common.OpModeReference;
@@ -34,7 +35,7 @@ package org.firstinspires.ftc.teamcode.pedroPathing;//package org.firstinspires.
 //
 //    @Override
 //    public void execute() {
-//        FtcDashboard dashboard = FtcDashboard.getInstance();
+//        Panels dashboard = Panels.getInstance();
 //        TelemetryPacket packet = new TelemetryPacket();
 //        action.preview(packet.fieldOverlay());
 //        isCommandFinished = !action.run(new TelemetryPacket());

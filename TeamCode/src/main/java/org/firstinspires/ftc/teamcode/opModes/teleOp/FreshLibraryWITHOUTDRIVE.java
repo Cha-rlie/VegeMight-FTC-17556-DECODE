@@ -33,8 +33,6 @@ public class FreshLibraryWITHOUTDRIVE extends CommandOpMode {
         gamePad1.getGamepadButton(GamepadKeys.Button.LEFT_BUMPER).whenPressed(OpModeReference.getInstance().globalsSubSystem.backwardsRobotState());
         gamePad2.getGamepadButton(GamepadKeys.Button.RIGHT_BUMPER).whenPressed(OpModeReference.getInstance().globalsSubSystem.forwardsRobotState());
         gamePad2.getGamepadButton(GamepadKeys.Button.LEFT_BUMPER).whenPressed(OpModeReference.getInstance().globalsSubSystem.backwardsRobotState());
-        gamePad1.getGamepadButton(GamepadKeys.Button.START).whenPressed(OpModeReference.getInstance().globalsSubSystem.goToIdle()); //same as OPTIONS
-        gamePad2.getGamepadButton(GamepadKeys.Button.START).whenPressed(OpModeReference.getInstance().globalsSubSystem.goToIdle());
         gamePad2.getGamepadButton(GamepadKeys.Button.RIGHT_STICK_BUTTON).whenPressed(OpModeReference.getInstance().globalsSubSystem.setRobotStateCommand(RobotState.PARK));
 
         //gamePad1.getGamepadButton(GamepadKeys.Button.Y).whenPressed(OpModeReference.getInstance().limelightSubsystem.storeLimelightValue());

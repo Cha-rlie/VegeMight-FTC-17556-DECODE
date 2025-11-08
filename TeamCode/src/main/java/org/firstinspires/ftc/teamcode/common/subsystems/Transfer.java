@@ -4,8 +4,8 @@ import com.arcrobotics.ftclib.command.CommandScheduler;
 import com.arcrobotics.ftclib.command.PerpetualCommand;
 import com.arcrobotics.ftclib.command.RunCommand;
 import com.arcrobotics.ftclib.command.SubsystemBase;
-import com.qualcomm.robotcore.hardware.CRServo;
-import com.qualcomm.robotcore.hardware.DcMotorSimple;
+import com.arcrobotics.ftclib.command.WaitCommand;
+import com.arcrobotics.ftclib.hardware.motors.CRServo;
 
 import org.firstinspires.ftc.teamcode.common.OpModeReference;
 import org.firstinspires.ftc.teamcode.common.util.Globals;
@@ -15,15 +15,19 @@ import org.firstinspires.ftc.teamcode.common.util.UpdateAndPowerScheduler;
 public class Transfer extends SubsystemBase {
     CRServo transferR;
     CRServo transferL;
-    CRServo transferB;
     UpdateAndPowerScheduler updateAndPowerScheduler;
     Globals globals;
-
+    
+    private double lastPower = 0;
 
     public Transfer() {
         CommandScheduler.getInstance().registerSubsystem(this);
         globals = OpModeReference.getInstance().globalsSubSystem;
-        transferL.setDirection(DcMotorSimple.Direction.REVERSE);
+        transferL = new CRServo(OpModeReference.getInstance().getHardwareMap(), "TL");
+        transferR = new CRServo(OpModeReference.getInstance().getHardwareMap(), "TR");
+        transferL.setInverted(true);
+        //transferL.set(0);
+        //transferR.set(0);
         updateAndPowerScheduler = OpModeReference.getInstance().updateAndPowerScheduler;
 
         setDefaultCommand(new PerpetualCommand(defaultCommand()));
@@ -33,17 +37,30 @@ public class Transfer extends SubsystemBase {
         return new RunCommand(()->{
            switch(globals.getRobotState()) {
                case INTAKE:
-                    transferR.setPower(1);
-                    transferL.setPower(1);
-               case IDLE:
-                   transferR.setPower(0);
-                   transferL.setPower(0);
+               case INIT:
+                    transfer(1);
+               case TRANSFER:
+                   transfer(1);
                case OUTTAKE:
-                   transferR.setPower(1);
-                   transferL.setPower(1);
-                   transferB.setPower(1);
+                   transfer(0);
            }
+        }, this);
+    }
+
+    public RunCommand transfer() {
+        return new RunCommand(()->{
+            transfer(1);
+            new WaitCommand(2000);
+            transfer(0);
         });
+    }
+    
+    public void transfer(double power) {
+        if (power != lastPower) {
+            transferL.set(power);
+            transferR.set(power);
+            lastPower = power;
+        }
     }
 
 

@@ -4,14 +4,18 @@ import com.arcrobotics.ftclib.command.CommandOpMode;
 import com.arcrobotics.ftclib.command.CommandScheduler;
 import com.arcrobotics.ftclib.gamepad.GamepadEx;
 import com.arcrobotics.ftclib.gamepad.GamepadKeys;
+import com.bylazar.configurables.annotations.Configurable;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
 import org.firstinspires.ftc.teamcode.common.OpModeReference;
 
 @TeleOp(name="TELEOP")
+@Configurable
 public class FreshLibrary extends CommandOpMode {
     GamepadEx gamePad1;
     GamepadEx gamePad2;
+
+    public static boolean drive = true;
 
     @Override
     public void initialize() {
@@ -32,8 +36,7 @@ public class FreshLibrary extends CommandOpMode {
         gamePad1.getGamepadButton(GamepadKeys.Button.LEFT_BUMPER).whenPressed(OpModeReference.getInstance().globalsSubSystem.backwardsRobotState());
         gamePad2.getGamepadButton(GamepadKeys.Button.RIGHT_BUMPER).whenPressed(OpModeReference.getInstance().globalsSubSystem.forwardsRobotState());
         gamePad2.getGamepadButton(GamepadKeys.Button.LEFT_BUMPER).whenPressed(OpModeReference.getInstance().globalsSubSystem.backwardsRobotState());
-        gamePad1.getGamepadButton(GamepadKeys.Button.START).whenPressed(OpModeReference.getInstance().globalsSubSystem.goToIdle()); //same as OPTIONS
-        gamePad2.getGamepadButton(GamepadKeys.Button.START).whenPressed(OpModeReference.getInstance().globalsSubSystem.goToIdle());
+        gamePad1.getGamepadButton(GamepadKeys.Button.A).whenPressed(OpModeReference.getInstance().outtakeSubSystem.shoot());
         //gamePad2.getGamepadButton(GamepadKeys.Button.RIGHT_STICK_BUTTON).whenPressed(OpModeReference.getInstance().globalsSubSystem.setRobotStateCommand(RobotState.PARKASCENT));
 
     }
@@ -41,8 +44,7 @@ public class FreshLibrary extends CommandOpMode {
     @Override
     public void run() {
         CommandScheduler.getInstance().run();
-        //new InstantCommand(() -> OpModeReference.getInstance().driveTrainSubSystem.inputJoySticks(gamePad1.getLeftX(), gamePad1.getLeftY(), gamePad1.getRightX())).schedule();
-        OpModeReference.getInstance().driveTrainSubSystem.driveRobotCentric(gamePad1.getLeftX(), gamePad1.getLeftY(), gamePad1.getRightX());
+        if (drive) {OpModeReference.getInstance().driveTrainSubSystem.driveRobotCentric(gamePad1.getLeftX(), gamePad1.getLeftY(), gamePad1.getRightX());}
         telemetry.update();
     }
 }

@@ -7,6 +7,7 @@ import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.teamcode.common.subsystems.DriveTrain;
 import org.firstinspires.ftc.teamcode.common.subsystems.Intake;
 import org.firstinspires.ftc.teamcode.common.subsystems.Limelight;
+import org.firstinspires.ftc.teamcode.common.subsystems.Outtake;
 import org.firstinspires.ftc.teamcode.common.subsystems.Transfer;
 import org.firstinspires.ftc.teamcode.common.util.Globals;
 import org.firstinspires.ftc.teamcode.common.util.UpdateAndPowerScheduler;
@@ -20,6 +21,7 @@ public class OpModeReference {
     public Globals globalsSubSystem;
     public DriveTrain driveTrainSubSystem;
     public Intake intakeSubSystem;
+    public Outtake outtakeSubSystem;
     public Limelight limelightSubsystem;
     public Transfer transfer;
     public UpdateAndPowerScheduler updateAndPowerScheduler;
@@ -39,6 +41,7 @@ public class OpModeReference {
         globalsSubSystem = new Globals();
         driveTrainSubSystem = new DriveTrain();
         intakeSubSystem = new Intake();
+        outtakeSubSystem = new Outtake();
         limelightSubsystem = new Limelight();
         transfer = new Transfer();
     }

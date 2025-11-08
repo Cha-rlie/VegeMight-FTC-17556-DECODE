@@ -21,6 +21,12 @@ public class Globals extends SubsystemBase {
     private RobotState robotState;
     public RobotState lastRobotState;
 
+    public boolean robotAutomaticallyMoving;
+    // TODO: make poses and location enum
+    //public XX targetLocation;
+    public boolean angledForShooting;
+    public boolean positionForShooting;
+
     UpdateAndPowerScheduler updateAndPowerScheduler;
 
     private HashMap <RobotState, RobotState> goForwardStateValuesOnly;
@@ -29,20 +35,20 @@ public class Globals extends SubsystemBase {
     // Constructor that builds the drivetrain subsystem class and Hashmaps :D
     public Globals() {
         goForwardStateValuesOnly = new HashMap<RobotState, RobotState>() {{
-            put(RobotState.IDLE, RobotState.OUTTAKE);
-            put(RobotState.OUTTAKE, RobotState.IDLE);
-            put(RobotState.INTAKE, RobotState.IDLE);
-            put(RobotState.INIT, RobotState.IDLE);
+            put(RobotState.TRANSFER, RobotState.OUTTAKE);
+            put(RobotState.OUTTAKE, RobotState.TRANSFER);
+            put(RobotState.INTAKE, RobotState.TRANSFER);
+            put(RobotState.INIT, RobotState.TRANSFER);
         }};
         goBackwardStateValuesOnly = new HashMap<RobotState, RobotState>() {{
-            put(RobotState.IDLE, RobotState.INTAKE);
-            put(RobotState.OUTTAKE, RobotState.IDLE);
-            put(RobotState.INTAKE, RobotState.IDLE);
-            put(RobotState.INIT, RobotState.IDLE);
+            put(RobotState.TRANSFER, RobotState.INTAKE);
+            put(RobotState.OUTTAKE, RobotState.TRANSFER);
+            put(RobotState.INTAKE, RobotState.TRANSFER);
+            put(RobotState.INIT, RobotState.TRANSFER);
         }};
 
-        robotState = RobotState.IDLE;
-        lastRobotState = RobotState.IDLE;
+        robotState = RobotState.INIT;
+        lastRobotState = RobotState.TRANSFER;
 
         updateAndPowerScheduler = OpModeReference.getInstance().updateAndPowerScheduler;
     }
@@ -63,7 +69,7 @@ public class Globals extends SubsystemBase {
     public InstantCommand forwardsRobotState() {
         return new InstantCommand(()-> {
             robotState = goForwardStateValuesOnly.get(getRobotState());
-            updateAndPowerScheduler.robotUpdate=true;
+            //updateAndPowerScheduler.robotUpdate=true;
         });
     }
 
@@ -71,15 +77,15 @@ public class Globals extends SubsystemBase {
     public InstantCommand backwardsRobotState() {
         return new InstantCommand(()-> {
             robotState = goBackwardStateValuesOnly.get(getRobotState());
-            updateAndPowerScheduler.robotUpdate=true;
+            //updateAndPowerScheduler.robotUpdate=true;
         });
     }
 
     @NonNull
-    public InstantCommand goToIdle() {
+    public InstantCommand goToTRANSFER() {
         return new InstantCommand(()-> {
-            if (robotState != RobotState.IDLE) {
-                robotState = RobotState.IDLE;
+            if (robotState != RobotState.TRANSFER) {
+                robotState = RobotState.TRANSFER;
             }
             updateAndPowerScheduler.robotUpdate=true;
         });
