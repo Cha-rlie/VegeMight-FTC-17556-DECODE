@@ -32,18 +32,20 @@ public class OpModeReference {
         return instance;
     }
 
-    public void initHardware(final HardwareMap hardwareMap, GamepadEx gamepad1, GamepadEx gamepad2, Telemetry telemetry, double xStart, double yStart, double headingStart) {
+    public void initHardware(final HardwareMap hardwareMap, GamepadEx gamepad1, GamepadEx gamepad2, Telemetry telemetry, double xStart, double yStart, double headingStart, boolean visionTesting) {
         this.hardwareMap = hardwareMap;
         this.gamePad1 = gamepad1;
         this.gamePad2 = gamepad2;
         this.telemetry = telemetry;
 
         globalsSubSystem = new Globals();
-        driveTrainSubSystem = new DriveTrain();
-        intakeSubSystem = new Intake();
-        outtakeSubSystem = new Outtake();
         limelightSubsystem = new Limelight();
-        transfer = new Transfer();
+        if (!visionTesting) {
+            driveTrainSubSystem = new DriveTrain();
+            intakeSubSystem = new Intake();
+            outtakeSubSystem = new Outtake();
+            transfer = new Transfer();
+        }
     }
 
     public void nullify() {

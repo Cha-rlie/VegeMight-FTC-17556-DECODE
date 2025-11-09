@@ -33,6 +33,7 @@ public class Outtake extends SubsystemBase {
     public static double hoodangle = 0;
 
     public static double P = 0.4;
+    public static int ticksPerTurretDegree = 650/90;
 
     Globals globals;
     UpdateAndPowerScheduler updateAndPowerScheduler;
@@ -49,6 +50,7 @@ public class Outtake extends SubsystemBase {
         turret.setRunMode(Motor.RunMode.PositionControl);
         flywheel.setInverted(true);
         turret.setPositionTolerance(75);
+        turret.setPositionCoefficient(P);
         turret.set(0.4);
         turret.stopAndResetEncoder();
 
@@ -66,9 +68,6 @@ public class Outtake extends SubsystemBase {
             if (globals.getRobotState() == RobotState.OUTTAKE) {
                 flywheel.setVelocity(flywheelVelocity);
                 flywheel.setRunMode(Motor.RunMode.VelocityControl);
-                turret.setPositionCoefficient(P);
-                turret.setTargetPosition(turretRTP);
-                turret.set(0.4);
                 hoodL.setPosition(hoodangle);
                 hoodR.setPosition(hoodangle);
                 if (turret.atTargetPosition()){
@@ -80,7 +79,6 @@ public class Outtake extends SubsystemBase {
                 hoodL.setPosition(hoodangle);
                 hoodR.setPosition(hoodangle);
                 flipper.setPosition(flipGroundPos);
-                turret.setPositionCoefficient(P);
                 turret.setTargetPosition(turretRTP);
                 turret.set(0.4);
                 if (turret.atTargetPosition()){
@@ -89,6 +87,9 @@ public class Outtake extends SubsystemBase {
 
             } else {
                 flywheel.setVelocity(flywheelVelocity*0.75);
+                int targetRTP = turretRTP - (int)(ticksPerTurretDegree*OpModeReference.getInstance().limelightSubsystem.angle);
+                turret.setTargetPosition(targetRTP);
+                turret.set(0.4);
             }
 
 //            if (updateAndPowerScheduler.outtakeUpdate) {

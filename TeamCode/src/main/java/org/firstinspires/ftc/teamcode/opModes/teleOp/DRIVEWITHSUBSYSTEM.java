@@ -26,7 +26,7 @@ public class DRIVEWITHSUBSYSTEM extends CommandOpMode {
         gamePad1 = new GamepadEx(gamepad1);
         gamePad2 = new GamepadEx(gamepad2);
 
-        OpModeReference.getInstance().initHardware(hardwareMap, gamePad1, gamePad2, telemetry, 0, 0, 0);
+        OpModeReference.getInstance().initHardware(hardwareMap, gamePad1, gamePad2, telemetry, 0, 0, 0, false);
     }
 
     @Override
