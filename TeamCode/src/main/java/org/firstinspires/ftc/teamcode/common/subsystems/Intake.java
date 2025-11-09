@@ -46,7 +46,7 @@ public class Intake extends SubsystemBase {
             } else if (globals.getRobotState() == RobotState.INIT) {
                 intakeSpinner.set(intakeSpinnerPower);
             } else {
-                intakeSpinner.set(intakeSpinnerPower - 0.3);
+                intakeSpinner.set(intakeSpinnerPower - 0.15);
             }
             if (Math.abs(intakeSpinner.getVelocity())<25) {intakeSpinner.set(-intakeSpinnerPower);}
 //            if (updateAndPowerScheduler.outtakeUpdate) {

@@ -58,9 +58,18 @@ public class Transfer extends SubsystemBase {
         return new SequentialCommandGroup(
             new InstantCommand(()->override = true).andThen(),
             transferPower(1),
-            new WaitCommand(500),
+            new WaitCommand(1000),
             transferPower(0),
             new InstantCommand(()->override = false)
+        );
+    }
+    public SequentialCommandGroup transferback() {
+        return new SequentialCommandGroup(
+                new InstantCommand(()->override = true).andThen(),
+                transferPower(-0.3),
+                new WaitCommand(700),
+                transferPower(0),
+                new InstantCommand(()->override = false)
         );
     }
 

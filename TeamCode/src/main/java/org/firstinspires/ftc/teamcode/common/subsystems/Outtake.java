@@ -26,11 +26,13 @@ public class Outtake extends SubsystemBase {
     Servo hoodR;
     Servo flipper;
 
-    public static double flipUpPos = 0.175;
+    public static double flipUpPos = 0.190;
     public static double flipGroundPos = 0.01;
     public static int flywheelVelocity = 1000;
     public static int turretRTP = 0;
-    public static int hoodangle = 0;
+    public static double hoodangle = 0;
+
+    public static double P = 0.4;
 
     Globals globals;
     UpdateAndPowerScheduler updateAndPowerScheduler;
@@ -41,12 +43,13 @@ public class Outtake extends SubsystemBase {
         turret = new MotorEx(OpModeReference.getInstance().getHardwareMap(), "T", Motor.GoBILDA.RPM_312);
         hoodL = OpModeReference.getInstance().getHardwareMap().get(Servo.class, "HL");
         hoodR = OpModeReference.getInstance().getHardwareMap().get(Servo.class, "HR");
-        hoodR.setDirection(Servo.Direction.REVERSE);
+        hoodL.setDirection(Servo.Direction.REVERSE);
         flipper = OpModeReference.getInstance().getHardwareMap().get(Servo.class, "F");
         flywheel.setRunMode(Motor.RunMode.VelocityControl);
         turret.setRunMode(Motor.RunMode.PositionControl);
         flywheel.setInverted(true);
-        turret.setPositionTolerance(150);
+        turret.setPositionTolerance(75);
+        turret.set(0.4);
         turret.stopAndResetEncoder();
 
         //flywheel.setFeedforwardCoefficients(0.05,0.01,0.31);
@@ -63,18 +66,22 @@ public class Outtake extends SubsystemBase {
             if (globals.getRobotState() == RobotState.OUTTAKE) {
                 flywheel.setVelocity(flywheelVelocity);
                 flywheel.setRunMode(Motor.RunMode.VelocityControl);
+                turret.setPositionCoefficient(P);
                 turret.setTargetPosition(turretRTP);
                 turret.set(0.4);
+                hoodL.setPosition(hoodangle);
+                hoodR.setPosition(hoodangle);
                 if (turret.atTargetPosition()){
                     turret.set(0);
                 };
             } else if (globals.getRobotState() == RobotState.INIT) {
                 flywheel.setVelocity(flywheelVelocity*0.5);
                 flywheel.setTargetPosition(0);
-                hoodL.setPosition(0);
-                hoodR.setPosition(0);
+                hoodL.setPosition(hoodangle);
+                hoodR.setPosition(hoodangle);
                 flipper.setPosition(flipGroundPos);
-                turret.setTargetPosition(0);
+                turret.setPositionCoefficient(P);
+                turret.setTargetPosition(turretRTP);
                 turret.set(0.4);
                 if (turret.atTargetPosition()){
                     turret.set(0);
@@ -97,6 +104,8 @@ public class Outtake extends SubsystemBase {
 
     public SequentialCommandGroup shoot() {
         return new SequentialCommandGroup(
+            //OpModeReference.getInstance().transfer.transferback().andThen(
+            //new WaitCommand(300)),
             new InstantCommand(()->flipper.setPosition(flipUpPos)).andThen(
             new WaitCommand(500)),
             new InstantCommand(()->flipper.setPosition(flipGroundPos)).andThen(
