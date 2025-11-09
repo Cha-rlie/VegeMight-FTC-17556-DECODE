@@ -13,7 +13,7 @@ public class Limelight extends SubsystemBase {
 
     double limelightHeight = 17;
     double limelightAngle = 24.920;
-    double sampleHeight = 3.5;
+    double sampleHeight = 80;
 
     double requiredTotalExtension=250;
     double possibleadjustmentValue =0;

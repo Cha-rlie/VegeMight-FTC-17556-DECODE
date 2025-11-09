@@ -28,7 +28,7 @@ public class Intake extends SubsystemBase {
 
     UpdateAndPowerScheduler updateAndPowerScheduler;
 
-    public static double intakeSpinnerPower = 0.5;
+    public static double intakeSpinnerPower = 0.65;
 
     public Intake() {
         intakeSpinner = new MotorEx(OpModeReference.getInstance().getHardwareMap(), "IS", Motor.GoBILDA.RPM_1150);

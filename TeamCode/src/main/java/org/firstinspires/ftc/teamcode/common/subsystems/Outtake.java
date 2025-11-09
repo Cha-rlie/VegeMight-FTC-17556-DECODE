@@ -75,7 +75,7 @@ public class Outtake extends SubsystemBase {
                     turret.set(0);
                 };
             } else if (globals.getRobotState() == RobotState.INIT) {
-                flywheel.setVelocity(flywheelVelocity*0.5);
+                flywheel.setVelocity(flywheelVelocity*0.75);
                 flywheel.setTargetPosition(0);
                 hoodL.setPosition(hoodangle);
                 hoodR.setPosition(hoodangle);
@@ -88,7 +88,7 @@ public class Outtake extends SubsystemBase {
                 };
 
             } else {
-                flywheel.setVelocity(flywheelVelocity*0.5);
+                flywheel.setVelocity(flywheelVelocity*0.75);
             }
 
 //            if (updateAndPowerScheduler.outtakeUpdate) {
