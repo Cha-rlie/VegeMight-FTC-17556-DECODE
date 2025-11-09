@@ -30,6 +30,7 @@ public class Outtake extends SubsystemBase {
     public static double flipGroundPos = 0.01;
     public static int flywheelVelocity = 1000;
     public static int turretRTP = 0;
+    int adjustedTurretRTP = turretRTP;
     public static double hoodangle = 0;
 
     public static double P = 0.4;
@@ -87,8 +88,10 @@ public class Outtake extends SubsystemBase {
 
             } else {
                 flywheel.setVelocity(flywheelVelocity*0.75);
-                int targetRTP = turretRTP - (int)(ticksPerTurretDegree*OpModeReference.getInstance().limelightSubsystem.angle);
-                turret.setTargetPosition(targetRTP);
+                if (OpModeReference.getInstance().limelightSubsystem.angle>3) {
+                    adjustedTurretRTP = turretRTP - (int) (ticksPerTurretDegree * OpModeReference.getInstance().limelightSubsystem.angle);
+                }
+                turret.setTargetPosition(adjustedTurretRTP);
                 turret.set(0.4);
             }
 
