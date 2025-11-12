@@ -25,6 +25,7 @@ public class Outtake extends SubsystemBase {
     Servo hoodL;
     Servo hoodR;
     Servo flipper;
+    //1750,0.3
 
     public static double flipUpPos = 0.190;
     public static double flipGroundPos = 0.01;
@@ -32,8 +33,12 @@ public class Outtake extends SubsystemBase {
     public static int turretRTP = 0;
     int adjustedTurretRTP = turretRTP;
     public static double hoodangle = 0;
+    public static double turretAutoCoeffs = 0.05;
+    public static double turretPower = 0.1;
+    public static double kp = 0.1;
+    public static double kadjust = -1;
 
-    public static double P = 0.4;
+    public static double P = 0.05;
     public static int ticksPerTurretDegree = 650/90;
 
     Globals globals;
@@ -50,9 +55,9 @@ public class Outtake extends SubsystemBase {
         flywheel.setRunMode(Motor.RunMode.VelocityControl);
         turret.setRunMode(Motor.RunMode.PositionControl);
         flywheel.setInverted(true);
-        turret.setPositionTolerance(75);
+        turret.setPositionTolerance(50);
         turret.setPositionCoefficient(P);
-        turret.set(0.4);
+        turret.set(turretPower);
         turret.stopAndResetEncoder();
 
         //flywheel.setFeedforwardCoefficients(0.05,0.01,0.31);
@@ -81,18 +86,22 @@ public class Outtake extends SubsystemBase {
                 hoodR.setPosition(hoodangle);
                 flipper.setPosition(flipGroundPos);
                 turret.setTargetPosition(turretRTP);
-                turret.set(0.4);
+                turret.set(turretPower);
                 if (turret.atTargetPosition()){
                     turret.set(0);
                 };
 
             } else {
                 flywheel.setVelocity(flywheelVelocity*0.75);
-                if (OpModeReference.getInstance().limelightSubsystem.angle>3) {
-                    adjustedTurretRTP = turretRTP - (int) (ticksPerTurretDegree * OpModeReference.getInstance().limelightSubsystem.angle);
+                if (Math.abs(OpModeReference.getInstance().limelightSubsystem.angle)>0.1&&turret.atTargetPosition()) {
+                    adjustedTurretRTP = turretRTP - (int) (ticksPerTurretDegree*kp * (OpModeReference.getInstance().limelightSubsystem.angle-kadjust));
                 }
                 turret.setTargetPosition(adjustedTurretRTP);
-                turret.set(0.4);
+                turret.setPositionCoefficient(turretAutoCoeffs);
+                turret.set(turretPower);
+                if (turret.atTargetPosition()){
+                    turret.set(0);
+                };
             }
 
 //            if (updateAndPowerScheduler.outtakeUpdate) {
@@ -108,12 +117,30 @@ public class Outtake extends SubsystemBase {
 
     public SequentialCommandGroup shoot() {
         return new SequentialCommandGroup(
-            //OpModeReference.getInstance().transfer.transferback().andThen(
-            //new WaitCommand(300)),
             new InstantCommand(()->flipper.setPosition(flipUpPos)).andThen(
             new WaitCommand(500)),
             new InstantCommand(()->flipper.setPosition(flipGroundPos)).andThen(
             new WaitCommand(200)).andThen(OpModeReference.getInstance().transfer.transfer().andThen(new WaitCommand(1)))
+        );
+    }
+
+    public SequentialCommandGroup shootBackTriangle(){
+        return new SequentialCommandGroup(
+                new InstantCommand(()->flywheelVelocity=1750).andThen(
+                new InstantCommand(()->hoodangle=0.2))
+        );
+    }
+
+    public SequentialCommandGroup shootFrontTriangle(){
+        return new SequentialCommandGroup(
+                new InstantCommand(()->flywheelVelocity= (((int)(1.73975*OpModeReference.getInstance().limelightSubsystem.distance+1130.86772)))).andThen(
+                        new InstantCommand(()->hoodangle=0))
+        );
+    }
+
+    public InstantCommand overrideTurnTurret(){
+        return new InstantCommand(
+
         );
     }
 

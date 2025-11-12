@@ -38,7 +38,10 @@ public class FreshLibrary extends CommandOpMode {
         gamePad2.getGamepadButton(GamepadKeys.Button.RIGHT_BUMPER).whenPressed(OpModeReference.getInstance().globalsSubSystem.forwardsRobotState());
         gamePad2.getGamepadButton(GamepadKeys.Button.LEFT_BUMPER).whenPressed(OpModeReference.getInstance().globalsSubSystem.backwardsRobotState());
         gamePad1.getGamepadButton(GamepadKeys.Button.A).whenPressed(OpModeReference.getInstance().outtakeSubSystem.shoot());
-        //gamePad2.getGamepadButton(GamepadKeys.Button.RIGHT_STICK_BUTTON).whenPressed(OpModeReference.getInstance().globalsSubSystem.setRobotStateCommand(RobotState.PARKASCENT));
+        gamePad1.getGamepadButton(GamepadKeys.Button.B).whenPressed(OpModeReference.getInstance().outtakeSubSystem.shootBackTriangle());
+        gamePad1.getGamepadButton(GamepadKeys.Button.X).whenPressed(OpModeReference.getInstance().outtakeSubSystem.shootFrontTriangle());
+        gamePad1.getGamepadButton(GamepadKeys.Button.DPAD_DOWN).whenPressed(OpModeReference.getInstance().transfer.transferBack());
+        gamePad1.getGamepadButton(GamepadKeys.Button.DPAD_UP).whenPressed(OpModeReference.getInstance().transfer.transferForwards());
 
     }
 

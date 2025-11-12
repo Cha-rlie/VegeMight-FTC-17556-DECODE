@@ -40,7 +40,7 @@ public class Transfer extends SubsystemBase {
                case INTAKE:
                case TRANSFER:
                    if (!override) {
-                       transferPower(0.7).schedule();
+                       transferPower(0.8).schedule();
                    }
                     break;
                case OUTTAKE:
@@ -63,7 +63,7 @@ public class Transfer extends SubsystemBase {
             new InstantCommand(()->override = false)
         );
     }
-    public SequentialCommandGroup transferback() {
+    public SequentialCommandGroup transferBack() {
         return new SequentialCommandGroup(
                 new InstantCommand(()->override = true).andThen(),
                 transferPower(-0.3),
@@ -73,8 +73,15 @@ public class Transfer extends SubsystemBase {
         );
     }
 
-
-
+    public SequentialCommandGroup transferForwards() {
+        return new SequentialCommandGroup(
+                new InstantCommand(()->override = true).andThen(),
+                transferPower(-0.3),
+                new WaitCommand(700),
+                transferPower(0),
+                new InstantCommand(()->override = false)
+        );
+    }
 
     public InstantCommand transferPower(double power) {
         return new InstantCommand(()->{
