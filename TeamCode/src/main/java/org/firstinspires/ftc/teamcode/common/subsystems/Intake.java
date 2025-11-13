@@ -54,7 +54,7 @@ public class Intake extends SubsystemBase {
             } else {
                 intakeSpinner.set(intakeSpinnerPower - 0.15);
             }
-            if (Math.abs(intakeSpinner.getVelocity())<25) {intakeSpinner.set(-intakeSpinnerPower);}
+            if (Math.abs(intakeSpinner.getVelocity())<25 && !override && globals.getRobotState() != RobotState.OUTTAKE) {intakeSpinner.set(-intakeSpinnerPower);}
 //            if (updateAndPowerScheduler.outtakeUpdate) {
 //                if (!updateAndPowerScheduler.powerOuttake) {
 //                    //disable
@@ -71,7 +71,7 @@ public class Intake extends SubsystemBase {
                 new InstantCommand(()->override = true).andThen(
                 new InstantCommand(()->intakeSpinner.set(intakeSpinnerPower))),
                 new WaitCommand(1000),
-                new InstantCommand(()->intakeSpinner.set(intakeSpinnerPower)),
+                new InstantCommand(()->intakeSpinner.set(0)),
                 new InstantCommand(()->override = false));
     }
 

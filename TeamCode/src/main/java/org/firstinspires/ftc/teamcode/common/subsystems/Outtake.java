@@ -9,7 +9,10 @@ import com.arcrobotics.ftclib.command.WaitCommand;
 import com.arcrobotics.ftclib.hardware.motors.Motor;
 import com.arcrobotics.ftclib.hardware.motors.MotorEx;
 import com.bylazar.configurables.annotations.Configurable;
+import com.pedropathing.geometry.Pose;
 import com.qualcomm.hardware.bosch.BNO055IMU;
+import com.qualcomm.hardware.gobilda.GoBildaPinpointDriver;
+import com.qualcomm.robotcore.eventloop.opmode.OpModeManager;
 import com.qualcomm.robotcore.hardware.Servo;
 
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
@@ -22,6 +25,11 @@ import org.firstinspires.ftc.teamcode.common.util.UpdateAndPowerScheduler;
 public class Outtake extends SubsystemBase {
     public MotorEx flywheel;
     public MotorEx turret;
+    double targetRobotAngle;
+    double targetTurretAngle;
+    Pose redGoalPose = new Pose(144, 144, 0);
+    Pose blueGoalPose = new Pose(0, 144, 0);
+    Pose targetGoalPose = redGoalPose;
     Servo hoodL;
     Servo hoodR;
     Servo flipper;
@@ -45,6 +53,8 @@ public class Outtake extends SubsystemBase {
     UpdateAndPowerScheduler updateAndPowerScheduler;
 
     public Outtake() {
+        targetGoalPose = OpModeReference.getInstance().isRedAlliance ? redGoalPose : blueGoalPose;
+
         // Set up hardware
         flywheel = new MotorEx(OpModeReference.getInstance().getHardwareMap(), "FW", Motor.GoBILDA.BARE);
         turret = new MotorEx(OpModeReference.getInstance().getHardwareMap(), "T", Motor.GoBILDA.RPM_312);
@@ -68,15 +78,27 @@ public class Outtake extends SubsystemBase {
         setDefaultCommand(new PerpetualCommand(defaultCommand()));
 
     }
-
     public RunCommand defaultCommand() {
         return new RunCommand(()->{
-            if (globals.getRobotState() == RobotState.OUTTAKE) {
-                flywheel.setVelocity(flywheelVelocity);
-                flywheel.setRunMode(Motor.RunMode.VelocityControl);
-                hoodL.setPosition(hoodangle);
-                hoodR.setPosition(hoodangle);
-                if (OpModeReference.getInstance().limelightSubsystem.angle>0.01) {
+            if (!(globals.getRobotState() == RobotState.INIT)) {
+                if (!OpModeReference.getInstance().limelightSubsystem.resultIsValid) { // If limelight not seen, then use GoBilda PinPoint
+                    targetRobotAngle = Math.atan(Math.toRadians(targetGoalPose.getPose().getY() - OpModeReference.getInstance().pedroPathing.getY()) / (targetGoalPose.getPose().getX() - OpModeReference.getInstance().pedroPathing.getX()));
+
+                    targetTurretAngle = targetRobotAngle + OpModeReference.getInstance().pedroPathing.getHeading();
+
+                    // Don't let turret turn out of semi-circle bounds
+                    if (targetTurretAngle <= Math.PI / 2 && targetTurretAngle >= -Math.PI / 2 && turret.atTargetPosition()) {
+                        turret.setTargetPosition((int) Math.toDegrees(targetTurretAngle) * ticksPerTurretDegree + turret.getCurrentPosition());
+                        turret.setPositionCoefficient(turretAutoCoeffs);
+                        turret.set(turretPower);
+                    } else {
+                        turret.set(0);
+                    }
+                    if (turret.atTargetPosition()) {
+                        turret.set(0);
+                    };
+                }
+                else if (OpModeReference.getInstance().limelightSubsystem.angle>0.01) {
                     turret.setTargetPosition(OpModeReference.getInstance().outtakeSubSystem.turret.getCurrentPosition()+(int)(kp*OpModeReference.getInstance().limelightSubsystem.angle));
                     turret.setPositionCoefficient(turretAutoCoeffs);
                     turret.set(turretPower);
@@ -91,12 +113,23 @@ public class Outtake extends SubsystemBase {
                         turret.set(0);
                     };
                 } else {
-                    turret.setTargetPosition(OpModeReference.getInstance().outtakeSubSystem.turret.getCurrentPosition());
-                    turret.set(turretPower);
-                    if (turret.atTargetPosition()){
-                        turret.set(0);
-                    };
+                        turret.setTargetPosition(OpModeReference.getInstance().outtakeSubSystem.turret.getCurrentPosition());
+                        turret.set(turretPower);
+                        if (turret.atTargetPosition()) {
+                            turret.set(0);
+                        }
+                        ;
+                    }
+
                 }
+
+
+            if (globals.getRobotState() == RobotState.OUTTAKE) {
+                flywheel.setVelocity(flywheelVelocity);
+                flywheel.setRunMode(Motor.RunMode.VelocityControl);
+                hoodL.setPosition(hoodangle);
+                hoodR.setPosition(hoodangle);
+
             } else if (globals.getRobotState() == RobotState.INIT) {
                 flywheel.setVelocity(flywheelVelocity*0.75);
                 flywheel.setTargetPosition(0);
@@ -111,22 +144,6 @@ public class Outtake extends SubsystemBase {
 
             } else {
                 flywheel.setVelocity(flywheelVelocity*0.75);
-                if (Math.abs(OpModeReference.getInstance().limelightSubsystem.angle)>0.01) {
-                    turret.setTargetPosition(OpModeReference.getInstance().outtakeSubSystem.turret.getCurrentPosition()+(int)(kp*OpModeReference.getInstance().limelightSubsystem.angle));
-                    turret.setPositionCoefficient(turretAutoCoeffs);
-                    turret.set(turretPower);
-                    if (turret.atTargetPosition()){
-                        turret.set(0);
-                    };
-                } else {
-                    turret.setTargetPosition(OpModeReference.getInstance().outtakeSubSystem.turret.getCurrentPosition());
-                    turret.set(turretPower);
-                    if (turret.atTargetPosition()){
-                    turret.set(0);
-                    };
-                }
-
-
 //                if (Math.abs(OpModeReference.getInstance().limelightSubsystem.angle)>0.1&&turret.atTargetPosition()) {
 //                    adjustedTurretRTP = turretRTP - (int) (ticksPerTurretDegree*kp * (OpModeReference.getInstance().limelightSubsystem.angle-kadjust));
 //                }
@@ -155,8 +172,8 @@ public class Outtake extends SubsystemBase {
             new WaitCommand(500)),
             new InstantCommand(()->flipper.setPosition(flipGroundPos)).andThen(
             new WaitCommand(200)),
-            OpModeReference.getInstance().transfer.transfer(),
-            OpModeReference.getInstance().intakeSubSystem.transfer(),
+            OpModeReference.getInstance().transfer.transfer().alongWith(
+            OpModeReference.getInstance().intakeSubSystem.transfer()),
             new WaitCommand(1)
         );
     }
@@ -186,5 +203,7 @@ public class Outtake extends SubsystemBase {
         OpModeReference.getInstance().getTelemetry().addData("Flywheel Velocity", flywheel.getVelocity());
         OpModeReference.getInstance().getTelemetry().addData("Hood Pos", hoodL.getPosition());
         OpModeReference.getInstance().getTelemetry().addData("Flipper Pos", flipper.getPosition());
+        OpModeReference.getInstance().getTelemetry().addData("RobotAngle", targetRobotAngle);
+        OpModeReference.getInstance().getTelemetry().addData("TurretAngle", targetTurretAngle);
     }
 }

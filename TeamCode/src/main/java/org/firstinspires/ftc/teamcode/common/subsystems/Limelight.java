@@ -22,6 +22,8 @@ public class Limelight extends SubsystemBase {
 
     double distance = 100;
 
+    public boolean resultIsValid = true;
+
     double possibleadjustmentValue =0;
     int storedadjustmentValue=0;
 
@@ -44,22 +46,24 @@ public class Limelight extends SubsystemBase {
     // Default Command
     public RunCommand calibration(){
         return new RunCommand(()-> {
-            double targetOffsetAngle_Vertical = limelight.getLatestResult().getTx();
+            if (limelight.getLatestResult().isValid()) {
+                resultIsValid = true;
+                double targetOffsetAngle_Vertical = limelight.getLatestResult().getTx();
 
-            // how many degrees back is your limelight rotated from perfectly vertical;
+                // how many degrees back is your limelight rotated from perfectly vertical;
 
-            // distance from the center of the Limelight lens to the floor
-            double limelightLensHeightInches = limelightHeight;
+                // distance from the center of the Limelight lens to the floor
+                double limelightLensHeightInches = limelightHeight;
 
-            // distance from the target to the floor
-            double goalHeightInches = aprilTagHeight;
+                // distance from the target to the floor
+                double goalHeightInches = aprilTagHeight;
 
-            double angleToGoalDegrees = limelightAngle + targetOffsetAngle_Vertical;
-            double angleToGoalRadians = angleToGoalDegrees * (3.14159 / 180.0);
+                double angleToGoalDegrees = limelightAngle + targetOffsetAngle_Vertical;
+                double angleToGoalRadians = angleToGoalDegrees * (3.14159 / 180.0);
 
-            //calculate distance
-            distance = (goalHeightInches - limelightLensHeightInches) / Math.tan(angleToGoalRadians);
-            angle = limelight.getLatestResult().getTy();
+                //calculate distance
+                distance = (goalHeightInches - limelightLensHeightInches) / Math.tan(angleToGoalRadians);
+                angle = limelight.getLatestResult().getTy();
 //            LLResult result = limelight.getLatestResult();
 //            if (result != null) {
 //                if (result.isValid()){
@@ -71,7 +75,10 @@ public class Limelight extends SubsystemBase {
 //            } else {
 //                OpModeReference.getInstance().getTelemetry().addLine("Null Result");
 //            }
-        }, this);
+            } else if (!limelight.getLatestResult().isValid()) {
+                resultIsValid=false;
+            }
+            }, this);
     }
 
     public InstantCommand detectObelisk() {

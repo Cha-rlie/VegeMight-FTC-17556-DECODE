@@ -1,6 +1,7 @@
 package org.firstinspires.ftc.teamcode.common;
 
 import com.arcrobotics.ftclib.gamepad.GamepadEx;
+import com.pedropathing.geometry.Pose;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
@@ -8,6 +9,7 @@ import org.firstinspires.ftc.teamcode.common.subsystems.DriveTrain;
 import org.firstinspires.ftc.teamcode.common.subsystems.Intake;
 import org.firstinspires.ftc.teamcode.common.subsystems.Limelight;
 import org.firstinspires.ftc.teamcode.common.subsystems.Outtake;
+import org.firstinspires.ftc.teamcode.common.subsystems.PedroPathing;
 import org.firstinspires.ftc.teamcode.common.subsystems.Transfer;
 import org.firstinspires.ftc.teamcode.common.util.Globals;
 import org.firstinspires.ftc.teamcode.common.util.UpdateAndPowerScheduler;
@@ -18,6 +20,7 @@ public class OpModeReference {
     GamepadEx gamePad1;
     GamepadEx gamePad2;
     Telemetry telemetry;
+    public boolean isRedAlliance;
     public Globals globalsSubSystem;
     public DriveTrain driveTrainSubSystem;
     public Intake intakeSubSystem;
@@ -25,6 +28,9 @@ public class OpModeReference {
     public Limelight limelightSubsystem;
     public Transfer transfer;
     public UpdateAndPowerScheduler updateAndPowerScheduler;
+    public PedroPathing pedroPathing;
+
+    private Pose robotPose = new Pose(0, 0, 0);
 
 
     public static OpModeReference getInstance() {
@@ -40,6 +46,7 @@ public class OpModeReference {
 
         globalsSubSystem = new Globals();
         limelightSubsystem = new Limelight();
+        pedroPathing = new PedroPathing();
         if (!visionTesting) {
             driveTrainSubSystem = new DriveTrain();
             intakeSubSystem = new Intake();
@@ -70,5 +77,13 @@ public class OpModeReference {
 
     public boolean isBusy() {
         return intakeSubSystem.isBusy();
+    }
+
+    public void updateGlobalRobotPose(Pose newRobotPose) {
+        robotPose = newRobotPose;
+    }
+
+    public Pose getGlobalRobotPose() {
+        return robotPose;
     }
 }
