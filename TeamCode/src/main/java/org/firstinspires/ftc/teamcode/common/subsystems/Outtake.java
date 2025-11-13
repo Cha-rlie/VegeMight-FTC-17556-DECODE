@@ -35,7 +35,7 @@ public class Outtake extends SubsystemBase {
     public static double hoodangle = 0;
     public static double turretAutoCoeffs = 0.05;
     public static double turretPower = 0.1;
-    public static double kp = 0.1;
+    public static double kp = 10;
     public static double kadjust = -1;
 
     public static double P = 0.05;
@@ -55,7 +55,7 @@ public class Outtake extends SubsystemBase {
         flywheel.setRunMode(Motor.RunMode.VelocityControl);
         turret.setRunMode(Motor.RunMode.PositionControl);
         flywheel.setInverted(true);
-        turret.setPositionTolerance(50);
+        turret.setPositionTolerance(10);
         turret.setPositionCoefficient(P);
         turret.set(turretPower);
         turret.stopAndResetEncoder();
@@ -76,9 +76,27 @@ public class Outtake extends SubsystemBase {
                 flywheel.setRunMode(Motor.RunMode.VelocityControl);
                 hoodL.setPosition(hoodangle);
                 hoodR.setPosition(hoodangle);
-                if (turret.atTargetPosition()){
-                    turret.set(0);
-                };
+                if (OpModeReference.getInstance().limelightSubsystem.angle>0.01) {
+                    turret.setTargetPosition(OpModeReference.getInstance().outtakeSubSystem.turret.getCurrentPosition()+(int)(kp*OpModeReference.getInstance().limelightSubsystem.angle));
+                    turret.setPositionCoefficient(turretAutoCoeffs);
+                    turret.set(turretPower);
+                    if (turret.atTargetPosition()){
+                        turret.set(0);
+                    };
+                } else if (OpModeReference.getInstance().limelightSubsystem.angle<0.01){
+                    turret.setTargetPosition(OpModeReference.getInstance().outtakeSubSystem.turret.getCurrentPosition()-(int)(kp*OpModeReference.getInstance().limelightSubsystem.angle));
+                    turret.setPositionCoefficient(turretAutoCoeffs);
+                    turret.set(turretPower);
+                    if (turret.atTargetPosition()){
+                        turret.set(0);
+                    };
+                } else {
+                    turret.setTargetPosition(OpModeReference.getInstance().outtakeSubSystem.turret.getCurrentPosition());
+                    turret.set(turretPower);
+                    if (turret.atTargetPosition()){
+                        turret.set(0);
+                    };
+                }
             } else if (globals.getRobotState() == RobotState.INIT) {
                 flywheel.setVelocity(flywheelVelocity*0.75);
                 flywheel.setTargetPosition(0);
@@ -93,15 +111,31 @@ public class Outtake extends SubsystemBase {
 
             } else {
                 flywheel.setVelocity(flywheelVelocity*0.75);
-                if (Math.abs(OpModeReference.getInstance().limelightSubsystem.angle)>0.1&&turret.atTargetPosition()) {
-                    adjustedTurretRTP = turretRTP - (int) (ticksPerTurretDegree*kp * (OpModeReference.getInstance().limelightSubsystem.angle-kadjust));
-                }
-                turret.setTargetPosition(adjustedTurretRTP);
-                turret.setPositionCoefficient(turretAutoCoeffs);
-                turret.set(turretPower);
-                if (turret.atTargetPosition()){
+                if (Math.abs(OpModeReference.getInstance().limelightSubsystem.angle)>0.01) {
+                    turret.setTargetPosition(OpModeReference.getInstance().outtakeSubSystem.turret.getCurrentPosition()+(int)(kp*OpModeReference.getInstance().limelightSubsystem.angle));
+                    turret.setPositionCoefficient(turretAutoCoeffs);
+                    turret.set(turretPower);
+                    if (turret.atTargetPosition()){
+                        turret.set(0);
+                    };
+                } else {
+                    turret.setTargetPosition(OpModeReference.getInstance().outtakeSubSystem.turret.getCurrentPosition());
+                    turret.set(turretPower);
+                    if (turret.atTargetPosition()){
                     turret.set(0);
-                };
+                    };
+                }
+
+
+//                if (Math.abs(OpModeReference.getInstance().limelightSubsystem.angle)>0.1&&turret.atTargetPosition()) {
+//                    adjustedTurretRTP = turretRTP - (int) (ticksPerTurretDegree*kp * (OpModeReference.getInstance().limelightSubsystem.angle-kadjust));
+//                }
+//                turret.setTargetPosition(adjustedTurretRTP);
+//                turret.setPositionCoefficient(turretAutoCoeffs);
+//                turret.set(turretPower);
+//                if (turret.atTargetPosition()){
+//                    turret.set(0);
+//                };
             }
 
 //            if (updateAndPowerScheduler.outtakeUpdate) {
