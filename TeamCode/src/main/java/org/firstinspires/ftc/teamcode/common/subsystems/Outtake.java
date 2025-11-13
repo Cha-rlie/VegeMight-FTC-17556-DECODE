@@ -120,7 +120,10 @@ public class Outtake extends SubsystemBase {
             new InstantCommand(()->flipper.setPosition(flipUpPos)).andThen(
             new WaitCommand(500)),
             new InstantCommand(()->flipper.setPosition(flipGroundPos)).andThen(
-            new WaitCommand(200)).andThen(OpModeReference.getInstance().transfer.transfer().andThen(new WaitCommand(1)))
+            new WaitCommand(200)),
+            OpModeReference.getInstance().transfer.transfer(),
+            OpModeReference.getInstance().intakeSubSystem.transfer(),
+            new WaitCommand(1)
         );
     }
 

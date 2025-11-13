@@ -6,6 +6,7 @@ import com.arcrobotics.ftclib.command.CommandScheduler;
 import com.arcrobotics.ftclib.command.InstantCommand;
 import com.arcrobotics.ftclib.command.PerpetualCommand;
 import com.arcrobotics.ftclib.command.RunCommand;
+import com.arcrobotics.ftclib.command.SequentialCommandGroup;
 import com.arcrobotics.ftclib.command.SubsystemBase;
 import com.arcrobotics.ftclib.command.WaitCommand;
 import com.arcrobotics.ftclib.hardware.motors.Motor;
@@ -29,6 +30,7 @@ public class Intake extends SubsystemBase {
     UpdateAndPowerScheduler updateAndPowerScheduler;
 
     public static double intakeSpinnerPower = 0.65;
+    boolean override = false;
 
     public Intake() {
         intakeSpinner = new MotorEx(OpModeReference.getInstance().getHardwareMap(), "IS", Motor.GoBILDA.RPM_1150);
@@ -45,6 +47,10 @@ public class Intake extends SubsystemBase {
                 intakeSpinner.set(intakeSpinnerPower);
             } else if (globals.getRobotState() == RobotState.INIT) {
                 intakeSpinner.set(intakeSpinnerPower);
+            } else if (globals.getRobotState() == RobotState.OUTTAKE) {
+                if (!override) {
+                    intakeSpinner.set(0);
+                }
             } else {
                 intakeSpinner.set(intakeSpinnerPower - 0.15);
             }
@@ -58,6 +64,15 @@ public class Intake extends SubsystemBase {
 //                updateAndPowerScheduler.outtakeUpdate = false;
 //            }
         }, this);
+    }
+
+    public SequentialCommandGroup transfer() {
+        return new SequentialCommandGroup(
+                new InstantCommand(()->override = true).andThen(
+                new InstantCommand(()->intakeSpinner.set(intakeSpinnerPower))),
+                new WaitCommand(1000),
+                new InstantCommand(()->intakeSpinner.set(intakeSpinnerPower)),
+                new InstantCommand(()->override = false));
     }
 
     @Override
