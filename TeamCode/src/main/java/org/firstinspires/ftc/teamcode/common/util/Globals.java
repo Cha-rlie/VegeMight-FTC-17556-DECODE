@@ -61,7 +61,7 @@ public class Globals extends SubsystemBase {
         return new InstantCommand(()-> {
             lastRobotState = robotState;
             robotState = newRobotState;
-            updateAndPowerScheduler.robotUpdate=true;
+            //updateAndPowerScheduler.robotUpdate=true;
         });
     }
 
@@ -78,6 +78,13 @@ public class Globals extends SubsystemBase {
         return new InstantCommand(()-> {
             robotState = goBackwardStateValuesOnly.get(getRobotState());
             //updateAndPowerScheduler.robotUpdate=true;
+        });
+    }
+
+    @NonNull
+    public InstantCommand goToInit(){
+        return new InstantCommand(()->{
+           robotState=RobotState.INIT;
         });
     }
 

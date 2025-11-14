@@ -1,5 +1,7 @@
 package org.firstinspires.ftc.teamcode.common.subsystems;
 
+import android.media.VolumeShaper;
+
 import com.arcrobotics.ftclib.command.InstantCommand;
 import com.arcrobotics.ftclib.command.PerpetualCommand;
 import com.arcrobotics.ftclib.command.RunCommand;
@@ -43,7 +45,7 @@ public class Outtake extends SubsystemBase {
     public static double hoodangle = 0;
     public static double turretAutoCoeffs = 0.05;
     public static double turretPower = 0.1;
-    public static double kp = 10;
+    public static double kp = 5;
     public static double kadjust = -1;
 
     public static double P = 0.05;
@@ -70,9 +72,6 @@ public class Outtake extends SubsystemBase {
         turret.set(turretPower);
         turret.stopAndResetEncoder();
 
-        //flywheel.setFeedforwardCoefficients(0.05,0.01,0.31);
-        //flywheel.setRunMode(Motor.RunMode.RawPower);
-
         globals = OpModeReference.getInstance().globalsSubSystem;
         updateAndPowerScheduler = OpModeReference.getInstance().updateAndPowerScheduler;
         setDefaultCommand(new PerpetualCommand(defaultCommand()));
@@ -82,30 +81,9 @@ public class Outtake extends SubsystemBase {
         return new RunCommand(()->{
             if (!(globals.getRobotState() == RobotState.INIT)) {
                 if (!OpModeReference.getInstance().limelightSubsystem.resultIsValid) { // If limelight not seen, then use GoBilda PinPoint
-                    targetRobotAngle = Math.atan(Math.toRadians(targetGoalPose.getPose().getY() - OpModeReference.getInstance().pedroPathing.getY()) / (targetGoalPose.getPose().getX() - OpModeReference.getInstance().pedroPathing.getX()));
-
-                    targetTurretAngle = targetRobotAngle + OpModeReference.getInstance().pedroPathing.getHeading();
-
-                    // Don't let turret turn out of semi-circle bounds
-                    if (targetTurretAngle <= Math.PI / 2 && targetTurretAngle >= -Math.PI / 2 && turret.atTargetPosition()) {
-                        turret.setTargetPosition((int) Math.toDegrees(targetTurretAngle) * ticksPerTurretDegree + turret.getCurrentPosition());
-                        turret.setPositionCoefficient(turretAutoCoeffs);
-                        turret.set(turretPower);
-                    } else {
-                        turret.set(0);
-                    }
-                    if (turret.atTargetPosition()) {
-                        turret.set(0);
-                    };
+                    turret.set(0);
                 }
-                else if (OpModeReference.getInstance().limelightSubsystem.angle>0.01) {
-                    turret.setTargetPosition(OpModeReference.getInstance().outtakeSubSystem.turret.getCurrentPosition()+(int)(kp*OpModeReference.getInstance().limelightSubsystem.angle));
-                    turret.setPositionCoefficient(turretAutoCoeffs);
-                    turret.set(turretPower);
-                    if (turret.atTargetPosition()){
-                        turret.set(0);
-                    };
-                } else if (OpModeReference.getInstance().limelightSubsystem.angle<0.01){
+                else if (Math.abs(OpModeReference.getInstance().limelightSubsystem.angle)>0.01) {
                     turret.setTargetPosition(OpModeReference.getInstance().outtakeSubSystem.turret.getCurrentPosition()-(int)(kp*OpModeReference.getInstance().limelightSubsystem.angle));
                     turret.setPositionCoefficient(turretAutoCoeffs);
                     turret.set(turretPower);
@@ -144,26 +122,29 @@ public class Outtake extends SubsystemBase {
 
             } else {
                 flywheel.setVelocity(flywheelVelocity*0.75);
-//                if (Math.abs(OpModeReference.getInstance().limelightSubsystem.angle)>0.1&&turret.atTargetPosition()) {
-//                    adjustedTurretRTP = turretRTP - (int) (ticksPerTurretDegree*kp * (OpModeReference.getInstance().limelightSubsystem.angle-kadjust));
-//                }
-//                turret.setTargetPosition(adjustedTurretRTP);
-//                turret.setPositionCoefficient(turretAutoCoeffs);
-//                turret.set(turretPower);
-//                if (turret.atTargetPosition()){
-//                    turret.set(0);
-//                };
             }
-
-//            if (updateAndPowerScheduler.outtakeUpdate) {
-//                if (!updateAndPowerScheduler.powerOuttake) {
-//                    //disable
-//                } else {
-//                    //enable
-//                }
-//                updateAndPowerScheduler.outtakeUpdate=false;
-//            }
         }, this);
+    }
+
+    public InstantCommand alignTurret(){
+        return new InstantCommand(()-> {
+            targetRobotAngle = Math.atan(Math.toRadians(targetGoalPose.getPose().getY() - OpModeReference.getInstance().pedroPathing.getY()) / (targetGoalPose.getPose().getX() - OpModeReference.getInstance().pedroPathing.getX()));
+
+            targetTurretAngle = targetRobotAngle + OpModeReference.getInstance().pedroPathing.getHeading();
+
+            // Don't let turret turn out of semi-circle bounds
+            if (targetTurretAngle <= Math.PI / 2 && targetTurretAngle >= -Math.PI / 2 && turret.atTargetPosition()) {
+                turret.setTargetPosition((int) (Math.toDegrees(targetTurretAngle) * ticksPerTurretDegree * kp + turret.getCurrentPosition()));
+                turret.setPositionCoefficient(turretAutoCoeffs);
+                turret.set(turretPower);
+            } else {
+                turret.set(0);
+            }
+            if (turret.atTargetPosition()) {
+                turret.set(0);
+            }
+            ;
+        });
     }
 
     public SequentialCommandGroup shoot() {
@@ -185,17 +166,22 @@ public class Outtake extends SubsystemBase {
         );
     }
 
-    public SequentialCommandGroup shootFrontTriangle(){
+    /*public SequentialCommandGroup shootFrontTriangle(){
         return new SequentialCommandGroup(
                 new InstantCommand(()->flywheelVelocity= (((int)(1.73975*OpModeReference.getInstance().limelightSubsystem.distance+1130.86772)))).andThen(
                         new InstantCommand(()->hoodangle=0))
         );
-    }
+    }*/
 
-    public InstantCommand overrideTurnTurret(){
-        return new InstantCommand(
-
-        );
+    public InstantCommand shootFrontTriangle(){
+        return new InstantCommand(()-> {
+            if (OpModeReference.getInstance().limelightSubsystem.distance > 100) {
+                flywheelVelocity = 1530;
+            } else {
+                flywheelVelocity = 1250;
+            }
+            hoodangle = 0.1;
+        });
     }
 
     @Override

@@ -24,9 +24,6 @@ public class Limelight extends SubsystemBase {
 
     public boolean resultIsValid = true;
 
-    double possibleadjustmentValue =0;
-    int storedadjustmentValue=0;
-
     public Limelight() {
         limelight = OpModeReference.getInstance().getHardwareMap().get(Limelight3A.class, "limelight");
         OpModeReference.getInstance().getTelemetry().setMsTransmissionInterval(11);
@@ -48,7 +45,7 @@ public class Limelight extends SubsystemBase {
         return new RunCommand(()-> {
             if (limelight.getLatestResult().isValid()) {
                 resultIsValid = true;
-                double targetOffsetAngle_Vertical = limelight.getLatestResult().getTx();
+                double targetOffsetAngle_Vertical = - limelight.getLatestResult().getTy();
 
                 // how many degrees back is your limelight rotated from perfectly vertical;
 
@@ -63,18 +60,7 @@ public class Limelight extends SubsystemBase {
 
                 //calculate distance
                 distance = (goalHeightInches - limelightLensHeightInches) / Math.tan(angleToGoalRadians);
-                angle = limelight.getLatestResult().getTy();
-//            LLResult result = limelight.getLatestResult();
-//            if (result != null) {
-//                if (result.isValid()){
-//                    distance = ((aprilTagHeight -limelightHeight)/Math.tan(Math.toRadians(limelightAngle+txMultiplier*limelight.getLatestResult().getTy())));
-//                    angle = limelight.getLatestResult().getTy();
-//                } else {
-//                    OpModeReference.getInstance().getTelemetry().addLine("Invalid Result");
-//                }
-//            } else {
-//                OpModeReference.getInstance().getTelemetry().addLine("Null Result");
-//            }
+                angle = limelight.getLatestResult().getTx();
             } else if (!limelight.getLatestResult().isValid()) {
                 resultIsValid=false;
             }
