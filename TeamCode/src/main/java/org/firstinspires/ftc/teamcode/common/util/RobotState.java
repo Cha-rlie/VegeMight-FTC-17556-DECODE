@@ -7,5 +7,6 @@ public enum RobotState {
     INTAKE,
     TRANSFER,
     OUTTAKE,
+    DEFENSE,
     PARK
 }

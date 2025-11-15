@@ -3,6 +3,7 @@ package org.firstinspires.ftc.teamcode.common.util;
 import androidx.annotation.NonNull;
 
 import com.arcrobotics.ftclib.command.InstantCommand;
+import com.arcrobotics.ftclib.command.Robot;
 import com.arcrobotics.ftclib.command.SubsystemBase;
 
 import org.firstinspires.ftc.teamcode.common.OpModeReference;
@@ -70,6 +71,17 @@ public class Globals extends SubsystemBase {
         return new InstantCommand(()-> {
             robotState = goForwardStateValuesOnly.get(getRobotState());
             //updateAndPowerScheduler.robotUpdate=true;
+        });
+    }
+
+    @NonNull
+    public InstantCommand toggleDefense(){
+        return new InstantCommand(()->{
+            if (getRobotState()==RobotState.DEFENSE) {
+                robotState = RobotState.OUTTAKE;
+            } else {
+                robotState = RobotState.DEFENSE;
+            }
         });
     }
 

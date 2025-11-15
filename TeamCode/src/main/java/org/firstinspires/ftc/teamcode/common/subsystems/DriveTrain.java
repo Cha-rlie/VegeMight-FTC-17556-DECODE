@@ -3,12 +3,14 @@ package org.firstinspires.ftc.teamcode.common.subsystems;
 import com.arcrobotics.ftclib.command.CommandBase;
 import com.arcrobotics.ftclib.command.InstantCommand;
 import com.arcrobotics.ftclib.command.PerpetualCommand;
+import com.arcrobotics.ftclib.command.Robot;
 import com.arcrobotics.ftclib.command.SubsystemBase;
 import com.arcrobotics.ftclib.drivebase.MecanumDrive;
 import com.arcrobotics.ftclib.hardware.motors.Motor;
 import com.arcrobotics.ftclib.hardware.motors.MotorEx;
 
 import org.firstinspires.ftc.teamcode.common.OpModeReference;
+import org.firstinspires.ftc.teamcode.common.util.Globals;
 import org.firstinspires.ftc.teamcode.common.util.RobotState;
 
 public class DriveTrain extends SubsystemBase {
@@ -18,6 +20,9 @@ public class DriveTrain extends SubsystemBase {
     public MotorEx BR;
     public MecanumDrive driveTrain;
     private double velocityAdjuster = 1;
+    public double adjustment = 0.75;
+
+    Globals globals;
     public DriveTrain() {
         FL = new MotorEx(OpModeReference.getInstance().getHardwareMap(), "FL", Motor.GoBILDA.RPM_312);
         FR = new MotorEx(OpModeReference.getInstance().getHardwareMap(), "FR", Motor.GoBILDA.RPM_312);
@@ -25,6 +30,8 @@ public class DriveTrain extends SubsystemBase {
         BR = new MotorEx(OpModeReference.getInstance().getHardwareMap(), "BR", Motor.GoBILDA.RPM_312);
         FL.setInverted(true);
         BL.setInverted(true);
+
+        globals = OpModeReference.getInstance().globalsSubSystem;
 
         driveTrain = new MecanumDrive(false, FL, FR, BL, BR);
         //setDefaultCommand(new DriveCommand(this));
@@ -51,7 +58,10 @@ public class DriveTrain extends SubsystemBase {
     }
 
     public void driveRobotCentric(double x, double y, double rx) {
-        driveTrain.driveRobotCentric(x*0.75, y*0.75, rx*0.75, true);
+        if (globals.getRobotState() == RobotState.DEFENSE){
+
+        }
+        driveTrain.driveRobotCentric(x*adjustment, y*adjustment, rx*adjustment, true);
     }
 
     public InstantCommand decreaseVelocity(double trigger) {

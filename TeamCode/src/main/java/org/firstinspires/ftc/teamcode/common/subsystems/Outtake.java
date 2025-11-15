@@ -114,6 +114,8 @@ public class Outtake extends SubsystemBase {
             } else if (globals.getRobotState() == RobotState.INIT) {
                 flywheel.setVelocity(0);
                 turret.set(0);
+            } else if (globals.getRobotState()==RobotState.DEFENSE){
+                flywheel.setVelocity(0);
             } else {
                 flywheel.setVelocity(flywheelVelocity*0.75);
             }
@@ -143,6 +145,7 @@ public class Outtake extends SubsystemBase {
 
     public SequentialCommandGroup shoot() {
         return new SequentialCommandGroup(
+            new InstantCommand(()-> OpModeReference.getInstance().globalsSubSystem.setRobotStateCommand(RobotState.OUTTAKE)),
             OpModeReference.getInstance().transfer.transferBack().alongWith(new InstantCommand(()->flipper.setPosition(flipUpPos))),
             new WaitCommand(500),
             new InstantCommand(()->flipper.setPosition(flipGroundPos)).andThen(

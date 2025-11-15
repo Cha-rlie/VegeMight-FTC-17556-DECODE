@@ -86,6 +86,11 @@ public abstract class FreshLibrary extends CommandOpMode {
         }));
         gamePad2.getGamepadButton(GamepadKeys.Button.DPAD_RIGHT).whenPressed(new InstantCommand(()-> endAutoPathing=true));
         gamePad2.getGamepadButton(GamepadKeys.Button.START).whenPressed((OpModeReference.getInstance().flagSubsystem.toggleFlag()));
+        gamePad1.getGamepadButton(GamepadKeys.Button.LEFT_STICK_BUTTON).whenPressed(new InstantCommand (()->{
+            if(gamePad1.getGamepadButton(GamepadKeys.Button.RIGHT_STICK_BUTTON).get()){
+                OpModeReference.getInstance().globalsSubSystem.toggleDefense();
+            }
+        }));
     }
 
     public abstract void initalize();
