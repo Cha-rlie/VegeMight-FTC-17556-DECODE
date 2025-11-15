@@ -6,15 +6,10 @@ import com.arcrobotics.ftclib.command.InstantCommand;
 import com.arcrobotics.ftclib.command.WaitCommand;
 import com.arcrobotics.ftclib.gamepad.GamepadEx;
 import com.pedropathing.follower.Follower;
-import com.pedropathing.follower.FollowerConstants;
-import com.pedropathing.ftc.drivetrains.MecanumConstants;
-import com.pedropathing.ftc.localization.constants.PinpointConstants;
 import com.pedropathing.geometry.BezierCurve;
 import com.pedropathing.geometry.BezierLine;
 import com.pedropathing.geometry.Pose;
-import com.pedropathing.paths.Path;
 import com.pedropathing.paths.PathChain;
-import com.pedropathing.paths.PathConstraints;
 import com.pedropathing.util.Timer;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 
@@ -23,7 +18,7 @@ import org.firstinspires.ftc.teamcode.common.util.RobotState;
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 
 @Autonomous(name="Six Artifact Auto")
-public class sixArtifactAuto extends CommandOpMode {
+public class threeArtifactAuto extends CommandOpMode {
     // Initialise the PedroPathing Follower
     private boolean once = true;
     private Follower follower;
@@ -35,12 +30,13 @@ public class sixArtifactAuto extends CommandOpMode {
 
     // Initialise the poses
 
-    private final Pose startPose = new Pose(56, 14,Math.toRadians(90));
+    private final Pose startPose = new Pose(56, 14,Math.toRadians(-90));
+    private final Pose leavePose = new Pose(16, 16, Math.toRadians(-90));
 
-    private PathChain Path1;
-    private PathChain Path2;
+    private PathChain Path1, Path2, Path3;
     private boolean readyForNext = false;
     public boolean shooting = true;
+    String currentState = "Shooting";
 
     public void buildPaths() {
 
@@ -53,12 +49,16 @@ public class sixArtifactAuto extends CommandOpMode {
                                 new Pose(9.697, 36.364)
                         )
                 )
-                .setLinearHeadingInterpolation(Math.toRadians(90), Math.toRadians(180))
-                .build();
+                .setTangentHeadingInterpolation().build();
 
         Path2 = follower.pathBuilder()
                         .addPath(new BezierLine(new Pose(9.697, 36.364), new Pose(56.000, 9.000)))
-                        .setLinearHeadingInterpolation(Math.toRadians(180), Math.toRadians(90))
+                        .setLinearHeadingInterpolation(Math.toRadians(-90), Math.toRadians(-90))
+                        .build();
+
+        Path3 = follower.pathBuilder()
+                        .addPath(new BezierLine(new Pose(56.00, 9.00), leavePose))
+                        .setLinearHeadingInterpolation(Math.toRadians(-90), Math.toRadians(-90))
                         .build();
     }
     public void autonomousPathUpdate() {
@@ -66,67 +66,48 @@ public class sixArtifactAuto extends CommandOpMode {
             case 0: // Move from start to scoring position
                 // Shoot 3 + 1 for safety bonus
                 if (readyForNext) {
+                    readyForNext = false;
                     OpModeReference.getInstance().outtakeSubSystem.shootBackTriangle()
                             .andThen(new InstantCommand(()-> readyForNext=false))
-                            .andThen(OpModeReference.getInstance().globalsSubSystem.setRobotStateCommand(RobotState.OUTTAKE).andThen(new InstantCommand(()->shooting=true)))
-                            .andThen(OpModeReference.getInstance().outtakeSubSystem.shoot())
-                            .andThen(new WaitCommand(800))
-                            .andThen(OpModeReference.getInstance().outtakeSubSystem.shoot())
-                            .andThen(new WaitCommand(800))
-                            .andThen(OpModeReference.getInstance().outtakeSubSystem.shoot())
-                            .andThen(new WaitCommand(800))
-                            .andThen(OpModeReference.getInstance().outtakeSubSystem.shoot())
-                            .andThen(new WaitCommand(800))
+                            .andThen(OpModeReference.getInstance().outtakeSubSystem.turretTurnToPos(-250))
+                            .andThen(new InstantCommand(()->OpModeReference.getInstance().outtakeSubSystem.flywheel.setVelocity(800)))
+                            .andThen(new WaitCommand(700))
+                            .andThen(OpModeReference.getInstance().globalsSubSystem.setRobotStateCommand(RobotState.OUTTAKE)
+                            .andThen(new InstantCommand(()->shooting=true)))
+                            .andThen(new WaitCommand(1000))
+                            .andThen(OpModeReference.getInstance().outtakeSubSystem.autonomousShoot())
+                            .andThen(new WaitCommand(200))
+                            .andThen(OpModeReference.getInstance().outtakeSubSystem.autonomousShoot())
+                            .andThen(new WaitCommand(200))
+                            .andThen(OpModeReference.getInstance().outtakeSubSystem.autonomousShoot())
+                            .andThen(new WaitCommand(200))
+                            .andThen(OpModeReference.getInstance().outtakeSubSystem.autonomousShoot())
+                            .andThen(new WaitCommand(200))
                             .andThen(new InstantCommand(()->shooting=false))
                             .andThen(OpModeReference.getInstance().globalsSubSystem.setRobotStateCommand(RobotState.INTAKE))
+                            .andThen(new InstantCommand(()->setPathState(1)))
                             .andThen(new InstantCommand(()->readyForNext=true)).schedule();
                 }
-
-                if (!shooting && readyForNext) {
-                 setPathState(1);
-                }
                 break;
-            case 1: // Wait until the robot is near the scoring position
-                follower.followPath(Path1);
+            case 1:
                 if (!follower.isBusy() && readyForNext) {
+                    // leave points
+                    currentState = "Going to leave point";
+                    follower.followPath(Path3);
+                    follower.update();
+                    OpModeReference.getInstance().flagSubsystem.toggleFlag().schedule();
                     setPathState(2);
                 }
                 break;
-
-                // intake
             case 2:
-                if (!follower.isBusy() && readyForNext) {
-                    follower.followPath(Path2, true);
-                    setPathState(3);
+                if (!follower.isBusy() && readyForNext && pathTimer.getElapsedTimeSeconds() > 2) {
+                    // Put flag back down when we get to leave point
+                    currentState = "Arrived at end point";
+                    OpModeReference.getInstance().flagSubsystem.toggleFlag().schedule();
+                    setPathState(-1);
                 }
                 break;
-            case 3:
-                if (readyForNext) {
-                    new InstantCommand(()->readyForNext=false).andThen(OpModeReference.getInstance().globalsSubSystem.setRobotStateCommand(RobotState.OUTTAKE)).andThen(new InstantCommand(()->shooting=true)).andThen(
-                            OpModeReference.getInstance().outtakeSubSystem.shoot().andThen(
-                                    new WaitCommand(800).andThen(
-                                            OpModeReference.getInstance().outtakeSubSystem.shoot().andThen(
-                                                    new WaitCommand(800).andThen(
-                                                            OpModeReference.getInstance().outtakeSubSystem.shoot().andThen(
-                                                                    new WaitCommand(800).andThen(
-                                                                            OpModeReference.getInstance().outtakeSubSystem.shoot().andThen(
-                                                                                    new InstantCommand(()->shooting=false)
-                                                                            )
-                                                                    )
-                                                            )
-                                                    )
-                                            )
-                                    )
-                            )
-                    ).schedule();
-                }
-                // Shoot 3 + 1 for safety bonus
-                if (!shooting) {
-                    setPathState(4);
-                }
-                break;
-            case 4:
-                // leave points
+            default:
                 break;
         }
         ;
@@ -164,7 +145,10 @@ public void run() {
     telemetry.addData("x", follower.getPose().getX());
     telemetry.addData("y", follower.getPose().getY());
     telemetry.addData("heading", follower.getPose().getHeading());
-    telemetry.addData("IsBusy?", OpModeReference.getInstance().isBusy());
+    telemetry.addData("Stage", pathState);
+    telemetry.addData("IsBusy?", follower.isBusy());
+    telemetry.addData("Time", pathTimer.getElapsedTimeSeconds());
+    telemetry.addData("CurrentState", currentState);
     telemetry.update();
 }
 
@@ -196,6 +180,21 @@ public void initialize() {
     }
 
 }
+
+    @Override
+    public void runOpMode() throws InterruptedException {
+        initialize();
+
+        waitForStart();
+
+        // run the scheduler
+        while (!isStopRequested() && opModeIsActive()) {
+            run();
+        }
+        OpModeReference.getInstance().updateGlobalRobotPose(follower.getPose());
+        reset();
+    }
+
 
 }
 

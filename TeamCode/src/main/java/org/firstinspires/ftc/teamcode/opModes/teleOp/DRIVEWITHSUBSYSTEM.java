@@ -5,10 +5,12 @@ import com.arcrobotics.ftclib.command.CommandScheduler;
 import com.arcrobotics.ftclib.drivebase.MecanumDrive;
 import com.arcrobotics.ftclib.gamepad.GamepadEx;
 import com.arcrobotics.ftclib.hardware.motors.MotorEx;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
 import org.firstinspires.ftc.teamcode.common.OpModeReference;
 
+@Disabled
 @TeleOp(name = "DRIVEWITHSUBSYSTEM")
 public class DRIVEWITHSUBSYSTEM extends CommandOpMode {
     GamepadEx gamePad1;

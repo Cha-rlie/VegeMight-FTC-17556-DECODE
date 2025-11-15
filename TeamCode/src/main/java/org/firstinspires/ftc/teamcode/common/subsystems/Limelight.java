@@ -27,7 +27,7 @@ public class Limelight extends SubsystemBase {
     public Limelight() {
         limelight = OpModeReference.getInstance().getHardwareMap().get(Limelight3A.class, "limelight");
         OpModeReference.getInstance().getTelemetry().setMsTransmissionInterval(11);
-        limelight.pipelineSwitch(0);
+        limelight.pipelineSwitch(OpModeReference.getInstance().isRedAlliance ? 0 : 1);
         limelight.start();
         setDefaultCommand(new PerpetualCommand(calibration()));
     }
@@ -69,6 +69,12 @@ public class Limelight extends SubsystemBase {
 
     public InstantCommand detectObelisk() {
         return new InstantCommand();
+    }
+
+    public InstantCommand resetLimeLight() {
+        return new InstantCommand(()-> {
+
+        });
     }
 
 }

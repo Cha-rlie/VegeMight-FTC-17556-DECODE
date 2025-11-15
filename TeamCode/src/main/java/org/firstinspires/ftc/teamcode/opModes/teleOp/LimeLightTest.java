@@ -5,6 +5,8 @@ import com.qualcomm.hardware.limelightvision.Limelight3A;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
+import org.firstinspires.ftc.teamcode.common.OpModeReference;
+
 
 @TeleOp(name="LimeLight Test", group="Testing OpModes")
 public class LimeLightTest extends LinearOpMode {
@@ -23,7 +25,9 @@ public class LimeLightTest extends LinearOpMode {
 
         telemetry.setMsTransmissionInterval(11);
 
-        limelight.pipelineSwitch(0);
+        // Change pipeline depending on what alliance goal AprilTag we are looking for
+        int pipeline = OpModeReference.getInstance().isRedAlliance ? 0 : 1;
+        limelight.pipelineSwitch(pipeline);
 
         /*
          * Starts polling for data.

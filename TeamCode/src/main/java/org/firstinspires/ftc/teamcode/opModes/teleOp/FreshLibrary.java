@@ -14,6 +14,7 @@ import com.pedropathing.geometry.Pose;
 import com.pedropathing.paths.HeadingInterpolator;
 import com.pedropathing.paths.Path;
 import com.pedropathing.paths.PathChain;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
 import org.firstinspires.ftc.teamcode.common.OpModeReference;
@@ -21,9 +22,10 @@ import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 
 import java.util.function.Supplier;
 
+@Disabled
 @TeleOp(name="TELEOP")
 @Configurable
-public class FreshLibrary extends CommandOpMode {
+public abstract class FreshLibrary extends CommandOpMode {
     GamepadEx gamePad1;
     GamepadEx gamePad2;
 
@@ -38,9 +40,11 @@ public class FreshLibrary extends CommandOpMode {
     private boolean slowMode = false;
     private double slowModeMultiplier = 0.5;
     public boolean endAutoPathing = true;
+
     @Override
     public void initialize() {
         CommandScheduler.getInstance().reset();
+
         gamePad1 = new GamepadEx(gamepad1);
         gamePad2 = new GamepadEx(gamepad2);
 
@@ -54,6 +58,7 @@ public class FreshLibrary extends CommandOpMode {
                 .setHeadingInterpolation(HeadingInterpolator.linearFromPoint(follower::getHeading, Math.toRadians(90), 0.8))
                 .build();
 
+        OpModeReference.getInstance().isRedAlliance = this.getClass().getSimpleName().contains("Red");
 
         OpModeReference.getInstance().initHardware(hardwareMap, gamePad1, gamePad2, telemetry, 0, 0, 0, visionTesting);
 
@@ -73,14 +78,17 @@ public class FreshLibrary extends CommandOpMode {
         gamePad1.getGamepadButton(GamepadKeys.Button.X).whenPressed(OpModeReference.getInstance().outtakeSubSystem.shootFrontTriangle());
         gamePad1.getGamepadButton(GamepadKeys.Button.DPAD_DOWN).whenPressed(OpModeReference.getInstance().transfer.transferBack());
         gamePad1.getGamepadButton(GamepadKeys.Button.DPAD_UP).whenPressed(OpModeReference.getInstance().transfer.transferForwards());
-        gamePad2.getGamepadButton(GamepadKeys.Button.START).whenPressed(OpModeReference.getInstance().outtakeSubSystem.alignTurret());
+        gamePad2.getGamepadButton(GamepadKeys.Button.BACK).whenPressed(OpModeReference.getInstance().outtakeSubSystem.alignTurret());
         gamePad1.getGamepadButton(GamepadKeys.Button.DPAD_LEFT).whenPressed(new InstantCommand(()->{
             follower.followPath(pathChain.get());
             automatedDrive=true;
             endAutoPathing=false;
         }));
         gamePad2.getGamepadButton(GamepadKeys.Button.DPAD_RIGHT).whenPressed(new InstantCommand(()-> endAutoPathing=true));
+        gamePad2.getGamepadButton(GamepadKeys.Button.START).whenPressed((OpModeReference.getInstance().flagSubsystem.toggleFlag()));
     }
+
+    public abstract void initalize();
 
     @Override
     public void run() {

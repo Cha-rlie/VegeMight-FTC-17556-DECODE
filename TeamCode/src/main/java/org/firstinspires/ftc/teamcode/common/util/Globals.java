@@ -47,7 +47,7 @@ public class Globals extends SubsystemBase {
             put(RobotState.INIT, RobotState.TRANSFER);
         }};
 
-        robotState = RobotState.INIT;
+        robotState = RobotState.TRANSFER;
         lastRobotState = RobotState.TRANSFER;
 
         updateAndPowerScheduler = OpModeReference.getInstance().updateAndPowerScheduler;

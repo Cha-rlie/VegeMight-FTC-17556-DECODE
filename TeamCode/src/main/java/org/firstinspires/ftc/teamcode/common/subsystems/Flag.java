@@ -14,21 +14,34 @@ import org.firstinspires.ftc.teamcode.common.util.RobotState;
 public class Flag extends SubsystemBase {
     Servo flag;
     Globals globals;
+    boolean flagActived = false;
 
     public Flag() {
         CommandScheduler.getInstance().registerSubsystem(this);
-        flag = OpModeReference.getInstance().getHardwareMap().get(Servo.class, "F");
+        flag = OpModeReference.getInstance().getHardwareMap().get(Servo.class, "FLAG");
+        flag.setDirection(Servo.Direction.REVERSE);
 
         globals = OpModeReference.getInstance().globalsSubSystem;
 
-        setDefaultCommand(new PerpetualCommand(whenParkFlagExtendo()));
+        setDefaultCommand(new PerpetualCommand(whenActiveatedFlagExtendo()));
     }
 
     @Override
     public void periodic() {
         //hardware.leftArm.setPosition(Math.min(armMiniTargetPosition, armTargetPosition));
         //hardware.rightArm.setPosition(Math.min(armMiniTargetPosition, armTargetPosition));
+        OpModeReference.getInstance().getTelemetry().addData("Flag State", flagActived);
         OpModeReference.getInstance().getTelemetry().addData("Flag Pos", flag.getPosition());
+    }
+
+    public RunCommand whenActiveatedFlagExtendo() {
+        return new RunCommand(() -> {
+           if (flagActived) {
+               flag.setPosition(0.375);
+           } else {
+               flag.setPosition(0);
+           }
+        }, this);
     }
 
 
@@ -42,9 +55,9 @@ public class Flag extends SubsystemBase {
         }, this);
     }
 
-    public InstantCommand storeFlag() {
-        return new InstantCommand(()->{
-            flag.setPosition(0);
+    public InstantCommand toggleFlag() {
+        return new InstantCommand(() -> {
+            flagActived = !flagActived;
         });
     }
 }

@@ -6,6 +6,7 @@ import com.qualcomm.robotcore.hardware.HardwareMap;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.teamcode.common.subsystems.DriveTrain;
+import org.firstinspires.ftc.teamcode.common.subsystems.Flag;
 import org.firstinspires.ftc.teamcode.common.subsystems.Intake;
 import org.firstinspires.ftc.teamcode.common.subsystems.Limelight;
 import org.firstinspires.ftc.teamcode.common.subsystems.Outtake;
@@ -20,13 +21,14 @@ public class OpModeReference {
     GamepadEx gamePad1;
     GamepadEx gamePad2;
     Telemetry telemetry;
-    public boolean isRedAlliance;
+    public boolean isRedAlliance = true;
     public Globals globalsSubSystem;
     public DriveTrain driveTrainSubSystem;
     public Intake intakeSubSystem;
     public Outtake outtakeSubSystem;
     public Limelight limelightSubsystem;
     public Transfer transfer;
+    public Flag flagSubsystem;
     public UpdateAndPowerScheduler updateAndPowerScheduler;
     public PedroPathing pedroPathing;
 
@@ -52,6 +54,7 @@ public class OpModeReference {
             intakeSubSystem = new Intake();
             outtakeSubSystem = new Outtake();
             transfer = new Transfer();
+            flagSubsystem = new Flag();
         }
     }
 

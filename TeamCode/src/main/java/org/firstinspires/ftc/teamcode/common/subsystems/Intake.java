@@ -30,7 +30,7 @@ public class Intake extends SubsystemBase {
     UpdateAndPowerScheduler updateAndPowerScheduler;
 
     public static double intakeSpinnerPower = 0.65;
-    boolean override = false;
+    public boolean override = false;
 
     public Intake() {
         intakeSpinner = new MotorEx(OpModeReference.getInstance().getHardwareMap(), "IS", Motor.GoBILDA.RPM_1150);
@@ -46,7 +46,8 @@ public class Intake extends SubsystemBase {
             if (globals.getRobotState() == RobotState.INTAKE) {
                 intakeSpinner.set(intakeSpinnerPower);
             } else if (globals.getRobotState() == RobotState.INIT) {
-                intakeSpinner.set(intakeSpinnerPower);
+                intakeSpinner.set(0);
+                override = true;
             } else if (globals.getRobotState() == RobotState.OUTTAKE) {
                 if (!override) {
                     intakeSpinner.set(0);

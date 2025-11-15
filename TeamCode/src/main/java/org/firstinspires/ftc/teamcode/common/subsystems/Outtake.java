@@ -8,6 +8,7 @@ import com.arcrobotics.ftclib.command.RunCommand;
 import com.arcrobotics.ftclib.command.SequentialCommandGroup;
 import com.arcrobotics.ftclib.command.SubsystemBase;
 import com.arcrobotics.ftclib.command.WaitCommand;
+import com.arcrobotics.ftclib.command.WaitUntilCommand;
 import com.arcrobotics.ftclib.hardware.motors.Motor;
 import com.arcrobotics.ftclib.hardware.motors.MotorEx;
 import com.bylazar.configurables.annotations.Configurable;
@@ -54,6 +55,8 @@ public class Outtake extends SubsystemBase {
     Globals globals;
     UpdateAndPowerScheduler updateAndPowerScheduler;
 
+    boolean override = false;
+
     public Outtake() {
         targetGoalPose = OpModeReference.getInstance().isRedAlliance ? redGoalPose : blueGoalPose;
 
@@ -64,6 +67,7 @@ public class Outtake extends SubsystemBase {
         hoodR = OpModeReference.getInstance().getHardwareMap().get(Servo.class, "HR");
         hoodL.setDirection(Servo.Direction.REVERSE);
         flipper = OpModeReference.getInstance().getHardwareMap().get(Servo.class, "F");
+        flipper.setPosition(flipGroundPos);
         flywheel.setRunMode(Motor.RunMode.VelocityControl);
         turret.setRunMode(Motor.RunMode.PositionControl);
         flywheel.setInverted(true);
@@ -79,7 +83,7 @@ public class Outtake extends SubsystemBase {
     }
     public RunCommand defaultCommand() {
         return new RunCommand(()->{
-            if (!(globals.getRobotState() == RobotState.INIT)) {
+            if (!(globals.getRobotState() == RobotState.INIT) && !override) {
                 if (!OpModeReference.getInstance().limelightSubsystem.resultIsValid) { // If limelight not seen, then use GoBilda PinPoint
                     turret.set(0);
                 }
@@ -96,7 +100,6 @@ public class Outtake extends SubsystemBase {
                         if (turret.atTargetPosition()) {
                             turret.set(0);
                         }
-                        ;
                     }
 
                 }
@@ -109,17 +112,8 @@ public class Outtake extends SubsystemBase {
                 hoodR.setPosition(hoodangle);
 
             } else if (globals.getRobotState() == RobotState.INIT) {
-                flywheel.setVelocity(flywheelVelocity*0.75);
-                flywheel.setTargetPosition(0);
-                hoodL.setPosition(hoodangle);
-                hoodR.setPosition(hoodangle);
-                flipper.setPosition(flipGroundPos);
-                turret.setTargetPosition(turretRTP);
-                turret.set(turretPower);
-                if (turret.atTargetPosition()){
-                    turret.set(0);
-                };
-
+                flywheel.setVelocity(0);
+                turret.set(0);
             } else {
                 flywheel.setVelocity(flywheelVelocity*0.75);
             }
@@ -149,13 +143,26 @@ public class Outtake extends SubsystemBase {
 
     public SequentialCommandGroup shoot() {
         return new SequentialCommandGroup(
-            new InstantCommand(()->flipper.setPosition(flipUpPos)).andThen(
-            new WaitCommand(500)),
+            OpModeReference.getInstance().transfer.transferBack().alongWith(new InstantCommand(()->flipper.setPosition(flipUpPos))),
+            new WaitCommand(500),
             new InstantCommand(()->flipper.setPosition(flipGroundPos)).andThen(
             new WaitCommand(200)),
             OpModeReference.getInstance().transfer.transfer().alongWith(
             OpModeReference.getInstance().intakeSubSystem.transfer()),
             new WaitCommand(1)
+        );
+    }
+
+    public SequentialCommandGroup autonomousShoot() {
+        return new SequentialCommandGroup(
+                new InstantCommand(()->OpModeReference.getInstance().transfer.transferBack()),
+                new InstantCommand(()->flipper.setPosition(flipUpPos)).andThen(
+                        new WaitCommand(500)),
+                new InstantCommand(()->flipper.setPosition(flipGroundPos)).andThen(
+                        new WaitCommand(200)),
+                OpModeReference.getInstance().transfer.transfer().alongWith(
+                        OpModeReference.getInstance().intakeSubSystem.transfer()),
+                new WaitCommand(1)
         );
     }
 
@@ -182,6 +189,16 @@ public class Outtake extends SubsystemBase {
             }
             hoodangle = 0.1;
         });
+    }
+
+    public SequentialCommandGroup turretTurnToPos(int targetPos) {
+        return new SequentialCommandGroup(
+            new InstantCommand(()-> override = true),
+            new InstantCommand(()->turret.setTargetPosition(targetPos)),
+            new InstantCommand(()->turret.set(turretPower)),
+            new WaitUntilCommand(()->turret.atTargetPosition()).withTimeout(800),
+            new InstantCommand(()->turret.set(0)),
+            new InstantCommand(()-> override = false));
     }
 
     @Override

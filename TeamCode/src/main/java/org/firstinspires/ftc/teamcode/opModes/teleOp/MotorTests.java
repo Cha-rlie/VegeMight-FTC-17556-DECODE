@@ -2,12 +2,14 @@ package org.firstinspires.ftc.teamcode.opModes.teleOp;
 
 import com.arcrobotics.ftclib.hardware.ServoEx;
 import com.bylazar.configurables.annotations.Configurable;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.Servo;
 
+@Disabled
 @TeleOp(name="MOTORTEST")
 @Configurable
 public class MotorTests extends OpMode {
