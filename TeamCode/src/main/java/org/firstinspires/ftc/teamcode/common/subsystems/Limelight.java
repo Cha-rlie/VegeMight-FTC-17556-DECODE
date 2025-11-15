@@ -17,6 +17,7 @@ public class Limelight extends SubsystemBase {
     public static double limelightHeight = 40;
     public static double limelightAngle = 15;
     public static int txMultiplier = 1;
+    public static double redAngleOffset = -7;
     double aprilTagHeight = 74.95;
     double angle = 0;
 
@@ -61,6 +62,9 @@ public class Limelight extends SubsystemBase {
                 //calculate distance
                 distance = (goalHeightInches - limelightLensHeightInches) / Math.tan(angleToGoalRadians);
                 angle = limelight.getLatestResult().getTx();
+                if (OpModeReference.getInstance().isRedAlliance) {
+                    angle += redAngleOffset;
+                }
             } else if (!limelight.getLatestResult().isValid()) {
                 resultIsValid=false;
             }
@@ -71,9 +75,9 @@ public class Limelight extends SubsystemBase {
         return new InstantCommand();
     }
 
-    public InstantCommand resetLimeLight() {
+    public InstantCommand closeLimeLight() {
         return new InstantCommand(()-> {
-
+            new InstantCommand(()->limelight.close());
         });
     }
 

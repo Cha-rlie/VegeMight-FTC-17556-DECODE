@@ -25,7 +25,7 @@ import java.util.function.Supplier;
 @Disabled
 @TeleOp(name="TELEOP")
 @Configurable
-public abstract class FreshLibrary extends CommandOpMode {
+public abstract class   FreshLibrary extends CommandOpMode {
     GamepadEx gamePad1;
     GamepadEx gamePad2;
 
@@ -77,6 +77,7 @@ public abstract class FreshLibrary extends CommandOpMode {
         gamePad1.getGamepadButton(GamepadKeys.Button.B).whenPressed(OpModeReference.getInstance().outtakeSubSystem.shootBackTriangle());
         gamePad1.getGamepadButton(GamepadKeys.Button.X).whenPressed(OpModeReference.getInstance().outtakeSubSystem.shootFrontTriangle());
         gamePad1.getGamepadButton(GamepadKeys.Button.DPAD_DOWN).whenPressed(OpModeReference.getInstance().transfer.transferBack());
+        gamePad2.getGamepadButton(GamepadKeys.Button.DPAD_DOWN).whenPressed(OpModeReference.getInstance().outtakeSubSystem.stuckShoot());
         gamePad1.getGamepadButton(GamepadKeys.Button.DPAD_UP).whenPressed(OpModeReference.getInstance().transfer.transferForwards());
         gamePad2.getGamepadButton(GamepadKeys.Button.BACK).whenPressed(OpModeReference.getInstance().outtakeSubSystem.alignTurret());
         gamePad1.getGamepadButton(GamepadKeys.Button.DPAD_LEFT).whenPressed(new InstantCommand(()->{
@@ -86,11 +87,7 @@ public abstract class FreshLibrary extends CommandOpMode {
         }));
         gamePad2.getGamepadButton(GamepadKeys.Button.DPAD_RIGHT).whenPressed(new InstantCommand(()-> endAutoPathing=true));
         gamePad2.getGamepadButton(GamepadKeys.Button.START).whenPressed((OpModeReference.getInstance().flagSubsystem.toggleFlag()));
-        gamePad1.getGamepadButton(GamepadKeys.Button.LEFT_STICK_BUTTON).whenPressed(new InstantCommand (()->{
-            if(gamePad1.getGamepadButton(GamepadKeys.Button.RIGHT_STICK_BUTTON).get()){
-                OpModeReference.getInstance().globalsSubSystem.toggleDefense();
-            }
-        }));
+        gamePad1.getGamepadButton(GamepadKeys.Button.LEFT_STICK_BUTTON).and(gamePad1.getGamepadButton(GamepadKeys.Button.RIGHT_STICK_BUTTON).whenPressed(OpModeReference.getInstance().globalsSubSystem.toggleDefense()));
     }
 
     public abstract void initalize();
@@ -110,5 +107,19 @@ public abstract class FreshLibrary extends CommandOpMode {
                 follower.breakFollowing();
             }
         }
+    }
+
+    @Override
+    public void runOpMode() throws InterruptedException {
+        initialize();
+
+        waitForStart();
+
+        // run the scheduler
+        while (!isStopRequested() && opModeIsActive()) {
+            run();
+        }
+        OpModeReference.getInstance().limelightSubsystem.closeLimeLight().schedule();
+        reset();
     }
 }

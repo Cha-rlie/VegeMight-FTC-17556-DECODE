@@ -145,7 +145,8 @@ public class Outtake extends SubsystemBase {
 
     public SequentialCommandGroup shoot() {
         return new SequentialCommandGroup(
-            new InstantCommand(()-> OpModeReference.getInstance().globalsSubSystem.setRobotStateCommand(RobotState.OUTTAKE)),
+            OpModeReference.getInstance().globalsSubSystem.setRobotStateCommand(RobotState.OUTTAKE),
+            new WaitCommand(400),
             OpModeReference.getInstance().transfer.transferBack().alongWith(new InstantCommand(()->flipper.setPosition(flipUpPos))),
             new WaitCommand(500),
             new InstantCommand(()->flipper.setPosition(flipGroundPos)).andThen(
@@ -153,6 +154,20 @@ public class Outtake extends SubsystemBase {
             OpModeReference.getInstance().transfer.transfer().alongWith(
             OpModeReference.getInstance().intakeSubSystem.transfer()),
             new WaitCommand(1)
+        );
+    }
+
+    public SequentialCommandGroup stuckShoot() {
+        return new SequentialCommandGroup(
+                OpModeReference.getInstance().globalsSubSystem.setRobotStateCommand(RobotState.OUTTAKE),
+                new WaitCommand(400),
+                OpModeReference.getInstance().transfer.transferBack().alongWith(OpModeReference.getInstance().intakeSubSystem.intakeBackwards()).alongWith(new InstantCommand(()->flipper.setPosition(flipUpPos))),
+                new WaitCommand(500),
+                new InstantCommand(()->flipper.setPosition(flipGroundPos)).andThen(
+                        new WaitCommand(200)),
+                OpModeReference.getInstance().transfer.transfer().alongWith(
+                        OpModeReference.getInstance().intakeSubSystem.transfer()),
+                new WaitCommand(1)
         );
     }
 

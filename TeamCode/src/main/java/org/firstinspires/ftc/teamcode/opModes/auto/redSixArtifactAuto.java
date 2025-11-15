@@ -30,7 +30,7 @@ public class redSixArtifactAuto extends CommandOpMode {
 
     // Initialise the poses
 
-    private final Pose startPose = new Pose(56, -14,Math.toRadians(-90));
+    private final Pose startPose = new Pose(86, 14,Math.toRadians(-90));
     private final Pose leavePose = new Pose(16, -16, Math.toRadians(-90));
 
     private PathChain Path1, Path2, Path3, PathLeave;
@@ -49,9 +49,9 @@ public class redSixArtifactAuto extends CommandOpMode {
         Path1 = follower.pathBuilder()
                 .addPath(
                         new BezierCurve(
-                                new Pose(56.000, -9.000),
-                                new Pose(51.394, -40.727),
-                                new Pose(9.697, -36.364)
+                                new Pose(86.000, 9.000),
+                                new Pose(80, 45),
+                                new Pose(130.8, 35.7)
                         )
                 )
                 .setTangentHeadingInterpolation().build();
@@ -84,8 +84,16 @@ public class redSixArtifactAuto extends CommandOpMode {
                             .andThen(new WaitCommand(200))
                             .andThen(OpModeReference.getInstance().outtakeSubSystem.autonomousShoot())
                             .andThen(new WaitCommand(200))
+                            .andThen(OpModeReference.getInstance().globalsSubSystem.setRobotStateCommand(RobotState.INTAKE))
+                            .andThen(new WaitCommand(1000))
+                            .andThen(OpModeReference.getInstance().globalsSubSystem.setRobotStateCommand(RobotState.OUTTAKE))
+                            .andThen(new WaitCommand(1000))
                             .andThen(OpModeReference.getInstance().outtakeSubSystem.autonomousShoot())
                             .andThen(new WaitCommand(200))
+                            .andThen(OpModeReference.getInstance().globalsSubSystem.setRobotStateCommand(RobotState.INTAKE))
+                            .andThen(new WaitCommand(1000))
+                            .andThen(OpModeReference.getInstance().globalsSubSystem.setRobotStateCommand(RobotState.OUTTAKE))
+                            .andThen(new WaitCommand(1000))
                             .andThen(OpModeReference.getInstance().outtakeSubSystem.autonomousShoot())
                             .andThen(new WaitCommand(200))
                             .andThen(new InstantCommand(()->shooting=false))
@@ -97,7 +105,7 @@ public class redSixArtifactAuto extends CommandOpMode {
             case 1:
                 if (!shooting && readyForNext) { // Go to intake position and intake at the same time
                     currentState = "Going to Intake";
-                    follower.followPath(PathLeave);
+                    follower.followPath(Path1);
                     setPathState(2);
                 }
                 break;
@@ -242,6 +250,7 @@ public void initialize() {
             run();
         }
         OpModeReference.getInstance().updateGlobalRobotPose(follower.getPose());
+        OpModeReference.getInstance().limelightSubsystem.closeLimeLight().schedule();
         reset();
     }
 

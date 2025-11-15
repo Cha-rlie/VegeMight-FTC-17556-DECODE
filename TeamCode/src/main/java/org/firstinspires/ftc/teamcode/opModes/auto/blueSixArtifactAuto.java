@@ -79,10 +79,17 @@ public class blueSixArtifactAuto extends CommandOpMode {
                             .andThen(new WaitCommand(200))
                             .andThen(OpModeReference.getInstance().outtakeSubSystem.autonomousShoot())
                             .andThen(new WaitCommand(200))
+                            .andThen(OpModeReference.getInstance().globalsSubSystem.setRobotStateCommand(RobotState.INTAKE))
+                            .andThen(new WaitCommand(1000))
+                            .andThen(OpModeReference.getInstance().globalsSubSystem.setRobotStateCommand(RobotState.OUTTAKE))
+                            .andThen(new WaitCommand(1000))
                             .andThen(OpModeReference.getInstance().outtakeSubSystem.autonomousShoot())
                             .andThen(new WaitCommand(200))
+                            .andThen(OpModeReference.getInstance().globalsSubSystem.setRobotStateCommand(RobotState.INTAKE))
+                            .andThen(new WaitCommand(1000))
+                            .andThen(OpModeReference.getInstance().globalsSubSystem.setRobotStateCommand(RobotState.OUTTAKE))
+                            .andThen(new WaitCommand(1000))
                             .andThen(OpModeReference.getInstance().outtakeSubSystem.autonomousShoot())
-                            .andThen(new WaitCommand(200))
                             .andThen(new InstantCommand(()->shooting=false))
                             .andThen(OpModeReference.getInstance().globalsSubSystem.setRobotStateCommand(RobotState.INTAKE))
                             .andThen(new InstantCommand(()->setPathState(1)))
@@ -237,6 +244,7 @@ public void initialize() {
             run();
         }
         OpModeReference.getInstance().updateGlobalRobotPose(follower.getPose());
+        OpModeReference.getInstance().limelightSubsystem.closeLimeLight().schedule();
         reset();
     }
 
