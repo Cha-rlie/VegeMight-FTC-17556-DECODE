@@ -76,10 +76,15 @@ public abstract class   FreshLibrary extends CommandOpMode {
         gamePad1.getGamepadButton(GamepadKeys.Button.A).whenPressed(OpModeReference.getInstance().outtakeSubSystem.shoot());
         gamePad1.getGamepadButton(GamepadKeys.Button.B).whenPressed(OpModeReference.getInstance().outtakeSubSystem.shootBackTriangle());
         gamePad1.getGamepadButton(GamepadKeys.Button.X).whenPressed(OpModeReference.getInstance().outtakeSubSystem.shootFrontTriangle());
+        gamePad2.getGamepadButton(GamepadKeys.Button.B).whenPressed(OpModeReference.getInstance().outtakeSubSystem.shootBackTriangle());
+        gamePad2.getGamepadButton(GamepadKeys.Button.X).whenPressed(OpModeReference.getInstance().outtakeSubSystem.shootFrontTriangle());
         gamePad1.getGamepadButton(GamepadKeys.Button.DPAD_DOWN).whenPressed(OpModeReference.getInstance().transfer.transferBack());
+        gamePad2.getGamepadButton(GamepadKeys.Button.DPAD_DOWN).whenPressed(OpModeReference.getInstance().transfer.transferBack());
         gamePad2.getGamepadButton(GamepadKeys.Button.DPAD_DOWN).whenPressed(OpModeReference.getInstance().outtakeSubSystem.stuckShoot());
         gamePad1.getGamepadButton(GamepadKeys.Button.DPAD_UP).whenPressed(OpModeReference.getInstance().transfer.transferForwards());
-        gamePad2.getGamepadButton(GamepadKeys.Button.BACK).whenPressed(OpModeReference.getInstance().outtakeSubSystem.alignTurret());
+        gamePad2.getGamepadButton(GamepadKeys.Button.DPAD_UP).whenPressed(OpModeReference.getInstance().transfer.transferForwards());
+        gamePad2.getGamepadButton(GamepadKeys.Button.BACK).whenPressed(OpModeReference.getInstance().outtakeSubSystem.stuckShoot());
+        //gamePad2.getGamepadButton(GamepadKeys.Button.BACK).whenPressed(OpModeReference.getInstance().outtakeSubSystem.alignTurret());
         gamePad1.getGamepadButton(GamepadKeys.Button.DPAD_LEFT).whenPressed(new InstantCommand(()->{
             follower.followPath(pathChain.get());
             automatedDrive=true;
@@ -89,6 +94,19 @@ public abstract class   FreshLibrary extends CommandOpMode {
         gamePad2.getGamepadButton(GamepadKeys.Button.START).whenPressed((OpModeReference.getInstance().flagSubsystem.toggleFlag()));
         gamePad1.getGamepadButton(GamepadKeys.Button.LEFT_STICK_BUTTON).and(gamePad1.getGamepadButton(GamepadKeys.Button.RIGHT_STICK_BUTTON).whenPressed(OpModeReference.getInstance().globalsSubSystem.toggleDefense()));
     }
+
+    /* Gamepad 2
+    LEFT BUMPER -> Go backwards in state machine
+    RIGHT BUMPER -> Go forwards in state machine
+    B -> Shoot back triangle
+    X -> Shoot front triangle
+    DPAD Down -> Transfer Backwards
+    DPAD Up -> Transger Up
+    START -> FLAGGGGG!!!
+    BACK -> Stuck Shoot
+    RIGHT JOYSTICK X VALUE -> Manual turret control
+
+     */
 
     public abstract void initalize();
 

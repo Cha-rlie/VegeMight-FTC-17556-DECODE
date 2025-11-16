@@ -74,7 +74,7 @@ public class blueSixArtifactAuto extends CommandOpMode {
                             .andThen(new WaitCommand(700))
                             .andThen(OpModeReference.getInstance().globalsSubSystem.setRobotStateCommand(RobotState.OUTTAKE)
                             .andThen(new InstantCommand(()->shooting=true)))
-                            .andThen(new WaitCommand(2000))
+                            .andThen(new WaitCommand(2500))
                             .andThen(OpModeReference.getInstance().outtakeSubSystem.autonomousShoot())
                             .andThen(new WaitCommand(200))
                             .andThen(OpModeReference.getInstance().outtakeSubSystem.autonomousShoot())

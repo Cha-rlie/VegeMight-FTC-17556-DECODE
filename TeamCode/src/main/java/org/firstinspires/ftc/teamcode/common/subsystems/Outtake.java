@@ -20,6 +20,7 @@ import com.qualcomm.robotcore.hardware.Servo;
 
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.teamcode.common.OpModeReference;
+import org.firstinspires.ftc.teamcode.common.util.CommandScheduler;
 import org.firstinspires.ftc.teamcode.common.util.Globals;
 import org.firstinspires.ftc.teamcode.common.util.RobotState;
 import org.firstinspires.ftc.teamcode.common.util.UpdateAndPowerScheduler;
@@ -51,11 +52,15 @@ public class Outtake extends SubsystemBase {
 
     public static double P = 0.05;
     public static int ticksPerTurretDegree = 650/90;
+    public static int shootFromFarTriangleFlywheelVelo = 1740;
 
     Globals globals;
     UpdateAndPowerScheduler updateAndPowerScheduler;
 
     boolean override = false;
+
+    String mode = "Nothing";
+    boolean manualTurretAllowed = true;
 
     public Outtake() {
         targetGoalPose = OpModeReference.getInstance().isRedAlliance ? redGoalPose : blueGoalPose;
@@ -86,6 +91,7 @@ public class Outtake extends SubsystemBase {
             if (!(globals.getRobotState() == RobotState.INIT) && !override) {
                 if (!OpModeReference.getInstance().limelightSubsystem.resultIsValid) { // If limelight not seen, then use GoBilda PinPoint
                     turret.set(0);
+                    manualTurretControl(OpModeReference.getInstance().getGamePad2().getRightX());
                 }
                 else if (Math.abs(OpModeReference.getInstance().limelightSubsystem.angle)>0.01) {
                     turret.setTargetPosition(OpModeReference.getInstance().outtakeSubSystem.turret.getCurrentPosition()-(int)(kp*OpModeReference.getInstance().limelightSubsystem.angle));
@@ -94,7 +100,16 @@ public class Outtake extends SubsystemBase {
                     if (turret.atTargetPosition()){
                         turret.set(0);
                     };
-                } else {
+                } else if (Math.abs(OpModeReference.getInstance().limelightSubsystem.lastAngle)>0.01) {
+                    turret.setTargetPosition(OpModeReference.getInstance().outtakeSubSystem.turret.getCurrentPosition()-(int)(kp*OpModeReference.getInstance().limelightSubsystem.lastAngle));
+                    turret.setPositionCoefficient(turretAutoCoeffs);
+                    turret.set(turretPower);
+                    if (turret.atTargetPosition()){
+                        turret.set(0);
+                    };
+                }
+                else {
+                        manualTurretControl(OpModeReference.getInstance().getGamePad2().getRightX());
                         turret.setTargetPosition(OpModeReference.getInstance().outtakeSubSystem.turret.getCurrentPosition());
                         turret.set(turretPower);
                         if (turret.atTargetPosition()) {
@@ -186,7 +201,8 @@ public class Outtake extends SubsystemBase {
 
     public SequentialCommandGroup shootBackTriangle(){
         return new SequentialCommandGroup(
-                new InstantCommand(()->flywheelVelocity=1750).andThen(
+                new InstantCommand(()->mode="Back Triangle"),
+                new InstantCommand(()->flywheelVelocity=shootFromFarTriangleFlywheelVelo).andThen(
                 new InstantCommand(()->hoodangle=0.2))
         );
     }
@@ -200,6 +216,7 @@ public class Outtake extends SubsystemBase {
 
     public InstantCommand shootFrontTriangle(){
         return new InstantCommand(()-> {
+            mode = "Front Triangle";
             if (OpModeReference.getInstance().limelightSubsystem.distance > 100) {
                 flywheelVelocity = 1530;
             } else {
@@ -219,6 +236,10 @@ public class Outtake extends SubsystemBase {
             new InstantCommand(()-> override = false));
     }
 
+    public void manualTurretControl(double joyStickValue) {
+        turret.setTargetPosition(turret.getCurrentPosition()+(int)joyStickValue*30);
+    }
+
     @Override
     public void periodic() {
         OpModeReference.getInstance().getTelemetry().addData("Flywheel Velocity", flywheel.getVelocity());
@@ -226,5 +247,6 @@ public class Outtake extends SubsystemBase {
         OpModeReference.getInstance().getTelemetry().addData("Flipper Pos", flipper.getPosition());
         OpModeReference.getInstance().getTelemetry().addData("RobotAngle", targetRobotAngle);
         OpModeReference.getInstance().getTelemetry().addData("TurretAngle", targetTurretAngle);
+        OpModeReference.getInstance().getTelemetry().addData("Mode", mode);
     }
 }

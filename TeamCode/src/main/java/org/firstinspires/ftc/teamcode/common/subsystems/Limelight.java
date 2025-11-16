@@ -20,6 +20,7 @@ public class Limelight extends SubsystemBase {
     public static double redAngleOffset = -7;
     double aprilTagHeight = 74.95;
     double angle = 0;
+    double lastAngle = 0;
 
     double distance = 100;
 
@@ -64,6 +65,9 @@ public class Limelight extends SubsystemBase {
                 angle = limelight.getLatestResult().getTx();
                 if (OpModeReference.getInstance().isRedAlliance) {
                     angle += redAngleOffset;
+                }
+                if (angle != 0) {
+                    lastAngle = angle;
                 }
             } else if (!limelight.getLatestResult().isValid()) {
                 resultIsValid=false;
