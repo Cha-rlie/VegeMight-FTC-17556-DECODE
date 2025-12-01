@@ -5,6 +5,7 @@ import com.arcrobotics.ftclib.command.PerpetualCommand;
 import com.arcrobotics.ftclib.command.RunCommand;
 import com.arcrobotics.ftclib.command.SubsystemBase;
 import com.bylazar.configurables.annotations.Configurable;
+import com.pedropathing.control.KalmanFilter;
 import com.pedropathing.follower.Follower;
 import com.pedropathing.follower.FollowerConstants;
 import com.pedropathing.geometry.Pose;
@@ -28,7 +29,9 @@ public class PedroPathing extends SubsystemBase {
     public void periodic() {
         OpModeReference.getInstance().getTelemetry().addData("Heading", follower.getHeading());
         OpModeReference.getInstance().getTelemetry().addData("X", follower.getPose().getX());
-        OpModeReference.getInstance().getTelemetry().addData("Y", follower.getPose().getX());
+        OpModeReference.getInstance().getTelemetry().addData("Y", follower.getPose().getY());
+        OpModeReference.getInstance().getTelemetry().addData("Velo X", follower.getVelocity().getXComponent());
+        OpModeReference.getInstance().getTelemetry().addData("Velo Y", follower.getVelocity().getYComponent());
     }
 
     // Default Command
@@ -57,5 +60,9 @@ public class PedroPathing extends SubsystemBase {
     public double getY() {
         return follower.getPose().getY();
     }
+
+    public double getVelocityX() {return follower.getVelocity().getXComponent();}
+
+    public double getVelocityY() {return follower.getVelocity().getYComponent();}
 
 }

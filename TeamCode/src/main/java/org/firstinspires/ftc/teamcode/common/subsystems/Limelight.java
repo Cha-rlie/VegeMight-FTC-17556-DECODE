@@ -5,8 +5,10 @@ import com.arcrobotics.ftclib.command.PerpetualCommand;
 import com.arcrobotics.ftclib.command.RunCommand;
 import com.arcrobotics.ftclib.command.SubsystemBase;
 import com.bylazar.configurables.annotations.Configurable;
+import com.bylazar.limelightproxy.LimelightProxyConfig;
 import com.qualcomm.hardware.limelightvision.LLResult;
 import com.qualcomm.hardware.limelightvision.Limelight3A;
+
 
 import org.firstinspires.ftc.teamcode.common.OpModeReference;
 
@@ -43,6 +45,12 @@ public class Limelight extends SubsystemBase {
     }
 
     // Default Command
+
+    public RunCommand positionEstimation(){
+        return new RunCommand(()->{
+
+        });
+    }
     public RunCommand calibration(){
         return new RunCommand(()-> {
             if (limelight.getLatestResult().isValid()) {
