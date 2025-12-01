@@ -17,7 +17,7 @@ public class MotorTests extends OpMode {
     DcMotorEx motor2;
     Servo angleL;
     Servo angleR;
-    Servo flipper;
+    //Servo flipper;
     Servo transferL;
     Servo transferR;
     public static double turretLaunchPower = -0.7;
@@ -33,7 +33,7 @@ public class MotorTests extends OpMode {
         angleL = hardwareMap.get(Servo.class, "angleL");
         angleR = hardwareMap.get(Servo.class, "angleR");
         angleR.setDirection(Servo.Direction.REVERSE);
-        flipper = hardwareMap.get(Servo.class, "flipper");
+        //flipper = hardwareMap.get(Servo.class, "flipper");
     }
 
     @Override
@@ -44,7 +44,7 @@ public class MotorTests extends OpMode {
         motor2.setPower(intakePower);
         angleL.setPosition(anglePos);
         angleR.setPosition(anglePos);
-        flipper.setPosition(flipperPos);
+        //flipper.setPosition(flipperPos);
         telemetry.addData("Launch Velocity", motor1.getVelocity());
         telemetry.update();
     }

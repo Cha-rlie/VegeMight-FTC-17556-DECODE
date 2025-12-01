@@ -36,12 +36,12 @@ public class Intake extends SubsystemBase {
     ElapsedTime stuckTimer = new ElapsedTime();
     boolean timerRunning = false;
 
-    public static double intakeSpinnerPower = 0.65;
+    public static double intakeSpinnerPower = 0.9;
     public boolean override = false;
     boolean allowBackSpin = false;
 
     public Intake() {
-        intakeSpinner = new MotorEx(OpModeReference.getInstance().getHardwareMap(), "IS", Motor.GoBILDA.RPM_1150);
+        intakeSpinner = new MotorEx(OpModeReference.getInstance().getHardwareMap(), "IS", Motor.GoBILDA.RPM_312);
         intakeSpinner.setRunMode(Motor.RunMode.RawPower);
         intakeSpinner.setInverted(true);
         globals = OpModeReference.getInstance().globalsSubSystem;

@@ -15,10 +15,11 @@ public class Flag extends SubsystemBase {
     Servo flag;
     Globals globals;
     boolean flagActived = false;
+    public static double flagZeroPos = 0.05;
 
     public Flag() {
         CommandScheduler.getInstance().registerSubsystem(this);
-        flag = OpModeReference.getInstance().getHardwareMap().get(Servo.class, "FLAG");
+        flag = OpModeReference.getInstance().getHardwareMap().get(Servo.class, "F");
         flag.setDirection(Servo.Direction.REVERSE);
 
         globals = OpModeReference.getInstance().globalsSubSystem;
@@ -48,7 +49,7 @@ public class Flag extends SubsystemBase {
     public RunCommand whenParkFlagExtendo() {
         return new RunCommand(() -> {
             if(globals.getRobotState() == RobotState.PARK) {
-                flag.setPosition(0);
+                flag.setPosition(flagZeroPos);
             } else {
                 flag.setPosition(0.55);
             }

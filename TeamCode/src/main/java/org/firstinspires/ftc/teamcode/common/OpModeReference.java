@@ -27,7 +27,7 @@ public class OpModeReference {
     public Intake intakeSubSystem;
     public Outtake outtakeSubSystem;
     public Limelight limelightSubsystem;
-    public Transfer transfer;
+    //public Transfer transfer;
     public Flag flagSubsystem;
     public UpdateAndPowerScheduler updateAndPowerScheduler;
     public PedroPathing pedroPathing;
@@ -53,7 +53,7 @@ public class OpModeReference {
             driveTrainSubSystem = new DriveTrain();
             intakeSubSystem = new Intake();
             outtakeSubSystem = new Outtake();
-            transfer = new Transfer();
+            //transfer = new Transfer();
             flagSubsystem = new Flag();
         }
     }

@@ -29,6 +29,7 @@ import org.firstinspires.ftc.teamcode.common.util.UpdateAndPowerScheduler;
 public class Outtake extends SubsystemBase {
     public MotorEx flywheel;
     public MotorEx turret;
+    public MotorEx transfer;
     double targetRobotAngle;
     double targetTurretAngle;
     Pose redGoalPose = new Pose(144, 144, 0);
@@ -36,7 +37,7 @@ public class Outtake extends SubsystemBase {
     Pose targetGoalPose = redGoalPose;
     Servo hoodL;
     Servo hoodR;
-    Servo flipper;
+    //Servo flipper;
     //1750,0.3
 
     public static double flipUpPos = 0.190;
@@ -53,6 +54,8 @@ public class Outtake extends SubsystemBase {
     public static double P = 0.05;
     public static int ticksPerTurretDegree = 650/90;
     public static int shootFromFarTriangleFlywheelVelo = 1740;
+    public static double transferPower = 0.8;
+    public static double transferStopPower = 0;
 
     Globals globals;
     UpdateAndPowerScheduler updateAndPowerScheduler;
@@ -61,6 +64,7 @@ public class Outtake extends SubsystemBase {
 
     String mode = "Nothing";
     boolean manualTurretAllowed = true;
+    boolean transferOn = false;
 
     public Outtake() {
         targetGoalPose = OpModeReference.getInstance().isRedAlliance ? redGoalPose : blueGoalPose;
@@ -68,11 +72,12 @@ public class Outtake extends SubsystemBase {
         // Set up hardware
         flywheel = new MotorEx(OpModeReference.getInstance().getHardwareMap(), "FW", Motor.GoBILDA.BARE);
         turret = new MotorEx(OpModeReference.getInstance().getHardwareMap(), "T", Motor.GoBILDA.RPM_312);
+        transfer = new MotorEx(OpModeReference.getInstance().getHardwareMap(), "TW", Motor.GoBILDA.BARE);
         hoodL = OpModeReference.getInstance().getHardwareMap().get(Servo.class, "HL");
         hoodR = OpModeReference.getInstance().getHardwareMap().get(Servo.class, "HR");
         hoodL.setDirection(Servo.Direction.REVERSE);
-        flipper = OpModeReference.getInstance().getHardwareMap().get(Servo.class, "F");
-        flipper.setPosition(flipGroundPos);
+        //flipper = OpModeReference.getInstance().getHardwareMap().get(Servo.class, "F");
+        //flipper.setPosition(flipGroundPos);
         flywheel.setRunMode(Motor.RunMode.VelocityControl);
         turret.setRunMode(Motor.RunMode.PositionControl);
         flywheel.setInverted(true);
@@ -88,6 +93,7 @@ public class Outtake extends SubsystemBase {
     }
     public RunCommand defaultCommand() {
         return new RunCommand(()->{
+            transfer.set(transferPower);
             if (!(globals.getRobotState() == RobotState.INIT) && !override) {
                 if (!OpModeReference.getInstance().limelightSubsystem.resultIsValid) { // If limelight not seen, then use GoBilda PinPoint
                     turret.set(0);
@@ -132,7 +138,7 @@ public class Outtake extends SubsystemBase {
             } else if (globals.getRobotState()==RobotState.DEFENSE){
                 flywheel.setVelocity(0);
             } else {
-                flywheel.setVelocity(flywheelVelocity*0.75);
+                flywheel.setVelocity(flywheelVelocity*1);
             }
         }, this);
     }
@@ -158,16 +164,29 @@ public class Outtake extends SubsystemBase {
         });
     }
 
+    public SequentialCommandGroup toggleContinuousShoot() {
+        return new SequentialCommandGroup(
+                new InstantCommand(()-> {
+                    transferOn = !transferOn;
+                    if (transferOn) {
+                        transfer.set(transferPower);
+                    } else {
+                        transfer.set(transferStopPower);
+                    }
+                })
+        );
+    }
+
     public SequentialCommandGroup shoot() {
         return new SequentialCommandGroup(
             OpModeReference.getInstance().globalsSubSystem.setRobotStateCommand(RobotState.OUTTAKE),
             new WaitCommand(400),
-            OpModeReference.getInstance().transfer.transferBack().alongWith(new InstantCommand(()->flipper.setPosition(flipUpPos))),
+            //OpModeReference.getInstance().transfer.transferBack().alongWith(new InstantCommand(()->flipper.setPosition(flipUpPos))),
             new WaitCommand(500),
-            new InstantCommand(()->flipper.setPosition(flipGroundPos)).andThen(
-            new WaitCommand(200)),
-            OpModeReference.getInstance().transfer.transfer().alongWith(
-            OpModeReference.getInstance().intakeSubSystem.transfer()),
+            //new InstantCommand(()->flipper.setPosition(flipGroundPos)).andThen(
+            new WaitCommand(200),
+            //OpModeReference.getInstance().transfer.transfer().alongWith(
+            OpModeReference.getInstance().intakeSubSystem.transfer(),
             new WaitCommand(1)
         );
     }
@@ -176,25 +195,25 @@ public class Outtake extends SubsystemBase {
         return new SequentialCommandGroup(
                 OpModeReference.getInstance().globalsSubSystem.setRobotStateCommand(RobotState.OUTTAKE),
                 new WaitCommand(400),
-                OpModeReference.getInstance().transfer.transferBack().alongWith(OpModeReference.getInstance().intakeSubSystem.intakeBackwards()).alongWith(new InstantCommand(()->flipper.setPosition(flipUpPos))),
+                //OpModeReference.getInstance().transfer.transferBack().alongWith(OpModeReference.getInstance().intakeSubSystem.intakeBackwards()).alongWith(new InstantCommand(()->flipper.setPosition(flipUpPos))),
                 new WaitCommand(500),
-                new InstantCommand(()->flipper.setPosition(flipGroundPos)).andThen(
-                        new WaitCommand(200)),
-                OpModeReference.getInstance().transfer.transfer().alongWith(
-                        OpModeReference.getInstance().intakeSubSystem.transfer()),
+                //new InstantCommand(()->flipper.setPosition(flipGroundPos)).andThen(
+                        new WaitCommand(200),
+                //OpModeReference.getInstance().transfer.transfer().alongWith(
+                        OpModeReference.getInstance().intakeSubSystem.transfer(),
                 new WaitCommand(1)
         );
     }
 
     public SequentialCommandGroup autonomousShoot() {
         return new SequentialCommandGroup(
-                new InstantCommand(()->OpModeReference.getInstance().transfer.transferBack()),
-                new InstantCommand(()->flipper.setPosition(flipUpPos)).andThen(
-                        new WaitCommand(500)),
-                new InstantCommand(()->flipper.setPosition(flipGroundPos)).andThen(
-                        new WaitCommand(200)),
-                OpModeReference.getInstance().transfer.transfer().alongWith(
-                        OpModeReference.getInstance().intakeSubSystem.transfer()),
+                //new InstantCommand(()->OpModeReference.getInstance().transfer.transferBack()),
+                //new InstantCommand(()->flipper.setPosition(flipUpPos)).andThen(
+                        new WaitCommand(500),
+                //new InstantCommand(()->flipper.setPosition(flipGroundPos)).andThen(
+                        new WaitCommand(200),
+                //OpModeReference.getInstance().transfer.transfer().alongWith(
+                        OpModeReference.getInstance().intakeSubSystem.transfer(),
                 new WaitCommand(1)
         );
     }
@@ -244,7 +263,7 @@ public class Outtake extends SubsystemBase {
     public void periodic() {
         OpModeReference.getInstance().getTelemetry().addData("Flywheel Velocity", flywheel.getVelocity());
         OpModeReference.getInstance().getTelemetry().addData("Hood Pos", hoodL.getPosition());
-        OpModeReference.getInstance().getTelemetry().addData("Flipper Pos", flipper.getPosition());
+        //OpModeReference.getInstance().getTelemetry().addData("Flipper Pos", flipper.getPosition());
         OpModeReference.getInstance().getTelemetry().addData("RobotAngle", targetRobotAngle);
         OpModeReference.getInstance().getTelemetry().addData("TurretAngle", targetTurretAngle);
         OpModeReference.getInstance().getTelemetry().addData("Mode", mode);
