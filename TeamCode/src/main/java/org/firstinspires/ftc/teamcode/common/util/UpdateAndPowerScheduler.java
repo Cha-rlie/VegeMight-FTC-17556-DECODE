@@ -31,7 +31,7 @@ public class UpdateAndPowerScheduler extends SubsystemBase {
     public RunCommand updatePower() {
         return new RunCommand(() -> {
             switch (globals.getRobotState()) {
-                case TRANSFER:
+                case TRAVEL:
                     powerIntake = true;
                     powerOuttake = false;
                     powerTransfer = true;

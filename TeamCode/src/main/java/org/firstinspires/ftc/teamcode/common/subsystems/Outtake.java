@@ -26,6 +26,9 @@ import org.firstinspires.ftc.teamcode.common.util.Globals;
 import org.firstinspires.ftc.teamcode.common.util.RobotState;
 import org.firstinspires.ftc.teamcode.common.util.UpdateAndPowerScheduler;
 
+import java.util.Timer;
+import java.util.concurrent.TimeUnit;
+
 @Configurable
 public class Outtake extends SubsystemBase {
     public MotorEx flywheel;
@@ -38,6 +41,7 @@ public class Outtake extends SubsystemBase {
     Pose targetGoalPose = redGoalPose;
     Servo hoodL;
     Servo hoodR;
+    Servo gate;
     //1750,0.3
 
     public static int flywheelVelocity = 1000;
@@ -49,6 +53,8 @@ public class Outtake extends SubsystemBase {
     public static int shootFromFarTriangleFlywheelVelo = 1740;
     public static double transferPower = 0.8;
     public static double transferStopPower = 0;
+    public static double gatePosOpen = 0;
+    public static double gatePosClosed = 0.11;
 
     public double previousError = 0;
     public double error = 0;
@@ -72,6 +78,9 @@ public class Outtake extends SubsystemBase {
     String mode = "Nothing";
     boolean manualTurretAllowed = true;
     boolean transferOn = false;
+    ElapsedTime speedUpTimer = new ElapsedTime();
+    boolean timerOn = false;
+    public static int speedUpTime = 500;
 
     public Outtake() {
         targetGoalPose = OpModeReference.getInstance().isRedAlliance ? redGoalPose : blueGoalPose;
@@ -83,6 +92,7 @@ public class Outtake extends SubsystemBase {
         transfer = new MotorEx(OpModeReference.getInstance().getHardwareMap(), "TW", Motor.GoBILDA.BARE);
         hoodL = OpModeReference.getInstance().getHardwareMap().get(Servo.class, "HL");
         hoodR = OpModeReference.getInstance().getHardwareMap().get(Servo.class, "HR");
+        gate = OpModeReference.getInstance().getHardwareMap().get(Servo.class, "G");
         hoodL.setDirection(Servo.Direction.REVERSE);
         flywheel.setRunMode(Motor.RunMode.VelocityControl);
         turret.setRunMode(Motor.RunMode.PositionControl);
@@ -100,7 +110,9 @@ public class Outtake extends SubsystemBase {
     }
     public RunCommand defaultCommand() {
         return new RunCommand(()->{
-            transfer.set(transferPower);
+            if (OpModeReference.getInstance().globalsSubSystem.getRobotState() != RobotState.OUTTAKE) {
+                timerOn = false;
+            }
             timePrevious=timenow;
             timenow=Timer.nanoseconds();
             //Timer
@@ -139,14 +151,26 @@ public class Outtake extends SubsystemBase {
                 flywheel.setRunMode(Motor.RunMode.VelocityControl);
                 hoodL.setPosition(hoodangle);
                 hoodR.setPosition(hoodangle);
+                if (!timerOn) {
+                    timerOn = !timerOn;
+                    speedUpTimer.reset();
+                }
+                if (speedUpTimer.time(TimeUnit.MILLISECONDS) > speedUpTime) {
+                    gate.setPosition(gatePosOpen);
+                    transfer.set(transferPower);
+                }
 
             } else if (globals.getRobotState() == RobotState.INIT) {
                 flywheel.setVelocity(0);
                 turret.set(0);
+                transfer.set(transferStopPower);
             } else if (globals.getRobotState()==RobotState.DEFENSE){
                 flywheel.setVelocity(0);
+                transfer.set(transferStopPower);
             } else {
-                flywheel.setVelocity(flywheelVelocity*1);
+                flywheel.setVelocity(flywheelVelocity*0.85);
+                transfer.set(transferStopPower);
+                gate.setPosition(gatePosClosed);
             }
         }, this);
     }

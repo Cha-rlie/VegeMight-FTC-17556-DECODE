@@ -1,8 +1,5 @@
 package org.firstinspires.ftc.teamcode.common.subsystems;
 
-import androidx.annotation.NonNull;
-
-import com.arcrobotics.ftclib.command.CommandScheduler;
 import com.arcrobotics.ftclib.command.InstantCommand;
 import com.arcrobotics.ftclib.command.PerpetualCommand;
 import com.arcrobotics.ftclib.command.RunCommand;
@@ -11,19 +8,13 @@ import com.arcrobotics.ftclib.command.SubsystemBase;
 import com.arcrobotics.ftclib.command.WaitCommand;
 import com.arcrobotics.ftclib.hardware.motors.Motor;
 import com.arcrobotics.ftclib.hardware.motors.MotorEx;
-import com.arcrobotics.ftclib.util.Timing;
 import com.bylazar.configurables.annotations.Configurable;
-import com.qualcomm.robotcore.hardware.DcMotorEx;
-import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.teamcode.common.OpModeReference;
 import org.firstinspires.ftc.teamcode.common.util.Globals;
 import org.firstinspires.ftc.teamcode.common.util.RobotState;
 import org.firstinspires.ftc.teamcode.common.util.UpdateAndPowerScheduler;
-
-import java.util.HashMap;
-import java.util.concurrent.TimeUnit;
 
 @Configurable
 public class Intake extends SubsystemBase {
@@ -53,13 +44,11 @@ public class Intake extends SubsystemBase {
         return new RunCommand(()->{
             if (globals.getRobotState() == RobotState.INTAKE) {
                 intakeSpinner.set(intakeSpinnerPower);
-            } else if (globals.getRobotState() == RobotState.INIT) {
+            } else if (globals.getRobotState() == RobotState.INIT || globals.getRobotState() == RobotState.TRAVEL) {
                 intakeSpinner.set(0);
                 override = true;
             } else if (globals.getRobotState() == RobotState.OUTTAKE) {
-                if (!override) {
-                    intakeSpinner.set(0);
-                }
+                intakeSpinner.set(intakeSpinnerPower);
             } else {
                 intakeSpinner.set(intakeSpinnerPower - 0.15);
             }

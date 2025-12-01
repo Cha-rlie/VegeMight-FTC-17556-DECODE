@@ -3,7 +3,6 @@ package org.firstinspires.ftc.teamcode.common.util;
 import androidx.annotation.NonNull;
 
 import com.arcrobotics.ftclib.command.InstantCommand;
-import com.arcrobotics.ftclib.command.Robot;
 import com.arcrobotics.ftclib.command.SubsystemBase;
 
 import org.firstinspires.ftc.teamcode.common.OpModeReference;
@@ -36,20 +35,22 @@ public class Globals extends SubsystemBase {
     // Constructor that builds the drivetrain subsystem class and Hashmaps :D
     public Globals() {
         goForwardStateValuesOnly = new HashMap<RobotState, RobotState>() {{
-            put(RobotState.TRANSFER, RobotState.OUTTAKE);
-            put(RobotState.OUTTAKE, RobotState.TRANSFER);
-            put(RobotState.INTAKE, RobotState.TRANSFER);
-            put(RobotState.INIT, RobotState.TRANSFER);
+            put(RobotState.TRAVEL, RobotState.OUTTAKE);
+            put(RobotState.OUTTAKE, RobotState.INTAKE);
+            put(RobotState.INTAKE, RobotState.TRAVEL);
+            put(RobotState.INIT, RobotState.TRAVEL);
+            put(RobotState.DEFENSE, RobotState.TRAVEL);
         }};
         goBackwardStateValuesOnly = new HashMap<RobotState, RobotState>() {{
-            put(RobotState.TRANSFER, RobotState.INTAKE);
-            put(RobotState.OUTTAKE, RobotState.TRANSFER);
-            put(RobotState.INTAKE, RobotState.TRANSFER);
-            put(RobotState.INIT, RobotState.TRANSFER);
+            put(RobotState.TRAVEL, RobotState.INTAKE);
+            put(RobotState.OUTTAKE, RobotState.TRAVEL);
+            put(RobotState.INTAKE, RobotState.TRAVEL);
+            put(RobotState.INIT, RobotState.TRAVEL);
+            put(RobotState.DEFENSE, RobotState.TRAVEL);
         }};
 
-        robotState = RobotState.TRANSFER;
-        lastRobotState = RobotState.TRANSFER;
+        robotState = RobotState.TRAVEL;
+        lastRobotState = RobotState.TRAVEL;
 
         updateAndPowerScheduler = OpModeReference.getInstance().updateAndPowerScheduler;
     }
@@ -103,8 +104,8 @@ public class Globals extends SubsystemBase {
     @NonNull
     public InstantCommand goToTRANSFER() {
         return new InstantCommand(()-> {
-            if (robotState != RobotState.TRANSFER) {
-                robotState = RobotState.TRANSFER;
+            if (robotState != RobotState.TRAVEL) {
+                robotState = RobotState.TRAVEL;
             }
             updateAndPowerScheduler.robotUpdate=true;
         });

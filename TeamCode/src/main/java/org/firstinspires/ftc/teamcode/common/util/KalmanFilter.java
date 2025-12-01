@@ -53,8 +53,8 @@ public class KalmanFilter extends SubsystemBase {
             currenttime=Timer.nanoseconds();
             prevx = x;
             prevy = y;
-            x = x+(velocity*(currenttime-previoustime));
-            y = y+(velocity*(currenttime-previoustime));
+            //x = x+(velocity*(currenttime-previoustime));
+            //y = y+(velocity*(currenttime-previoustime));
 
 
             // Update Variance
@@ -68,8 +68,8 @@ public class KalmanFilter extends SubsystemBase {
             Kx=(Varx/(Varx+r));
             Ky=(Vary/(Vary+r));
 
-            x = prevx + Kx*(Measurementx-x);
-            y = prevy + Ky*(Measurementy-y);
+            //x = prevx + Kx*(Measurementx-x);
+            //y = prevy + Ky*(Measurementy-y);
 
             //Update Variance
 

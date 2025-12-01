@@ -5,7 +5,7 @@ public enum RobotState {
     STOP,
     REJECT,
     INTAKE,
-    TRANSFER,
+    TRAVEL,
     OUTTAKE,
     DEFENSE,
     PARK
