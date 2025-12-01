@@ -11,8 +11,9 @@ import org.firstinspires.ftc.teamcode.common.subsystems.Intake;
 import org.firstinspires.ftc.teamcode.common.subsystems.Limelight;
 import org.firstinspires.ftc.teamcode.common.subsystems.Outtake;
 import org.firstinspires.ftc.teamcode.common.subsystems.PedroPathing;
-import org.firstinspires.ftc.teamcode.common.subsystems.Transfer;
+//import org.firstinspires.ftc.teamcode.common.subsystems.Transfer;
 import org.firstinspires.ftc.teamcode.common.util.Globals;
+import org.firstinspires.ftc.teamcode.common.util.KalmanFilter;
 import org.firstinspires.ftc.teamcode.common.util.UpdateAndPowerScheduler;
 
 public class OpModeReference {
@@ -23,6 +24,7 @@ public class OpModeReference {
     Telemetry telemetry;
     public boolean isRedAlliance = true;
     public Globals globalsSubSystem;
+    public KalmanFilter kalmanfilter;
     public DriveTrain driveTrainSubSystem;
     public Intake intakeSubSystem;
     public Outtake outtakeSubSystem;
@@ -49,6 +51,7 @@ public class OpModeReference {
         globalsSubSystem = new Globals();
         limelightSubsystem = new Limelight();
         pedroPathing = new PedroPathing();
+        kalmanfilter= new KalmanFilter();
         if (!visionTesting) {
             driveTrainSubSystem = new DriveTrain();
             intakeSubSystem = new Intake();
