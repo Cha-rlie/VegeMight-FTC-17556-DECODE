@@ -25,24 +25,26 @@ public class KalmanFilter extends SubsystemBase {
     double y = 0; //(get value from pinpoint/autonomous) - starting value
     double prevy = 0;
 
-    double Varx = 0;
-    double Vary = 0;
+    double Varx = 0.00001;
+    double Vary = 0.00001;
     double qx = 0;
     double qy = 0;
     double Kx = 0;
     double Ky = 0;
-    double r = 0;
+    double r = 0.0001;
 
     long currenttime = 0;
     long previoustime = 0; // better way to do time?
 
     double ReqAngle = 0;
 
-    ElapsedTime Timer = new ElapsedTime();
+    ElapsedTime Timer;
 
     public KalmanFilter() {
-        setDefaultCommand(new PerpetualCommand(calculateAngle()));
+        Timer = new ElapsedTime();
         Timer.reset();
+        setDefaultCommand(new PerpetualCommand(calculateAngle()));
+
     }
 
     public RunCommand calculateAngle(){
@@ -53,8 +55,8 @@ public class KalmanFilter extends SubsystemBase {
             currenttime=Timer.nanoseconds();
             prevx = x;
             prevy = y;
-            x = x+(velocity*(currenttime-previoustime));
-            y = y+(velocity*(currenttime-previoustime));
+            x = x+(OpModeReference.getInstance().pedroPathing.getVelocityX()*(currenttime-previoustime));
+            y = y+(OpModeReference.getInstance().pedroPathing.getVelocityY()*(currenttime-previoustime));
 
 
             // Update Variance
@@ -68,8 +70,8 @@ public class KalmanFilter extends SubsystemBase {
             Kx=(Varx/(Varx+r));
             Ky=(Vary/(Vary+r));
 
-            x = prevx + Kx*(Measurementx-x);
-            y = prevy + Ky*(Measurementy-y);
+            x = prevx + Kx*(OpModeReference.getInstance().pedroPathing.getX()-prevx);
+            y = prevy + Ky*(OpModeReference.getInstance().pedroPathing.getY()-prevy);
 
             //Update Variance
 
@@ -77,7 +79,18 @@ public class KalmanFilter extends SubsystemBase {
             Vary *= (1-Ky);
 
             // Calculate angle
-            ReqAngle = Math.atan(x/y);
+            if (OpModeReference.getInstance().isRedAlliance) {
+                ReqAngle = Math.toDegrees(Math.atan((144 - x) / (144 - y)));
+            } else{
+                ReqAngle = Math.toDegrees(Math.atan((-x) / (144 - y)));
+            }
         }, this);
+    }
+
+    @Override
+    public void periodic(){
+        OpModeReference.getInstance().getTelemetry().addData("Angle to Goal",ReqAngle);
+        OpModeReference.getInstance().getTelemetry().addData("x Kalman",x);
+        OpModeReference.getInstance().getTelemetry().addData("y Kalman",y);
     }
 }
