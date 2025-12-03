@@ -16,7 +16,7 @@ import org.firstinspires.ftc.teamcode.common.OpModeReference;
 public class Limelight extends SubsystemBase {
     private Limelight3A limelight;
 
-    public static double limelightHeight = 40;
+    public static double limelightHeight = 28.82;
     public static double limelightAngle = 15;
     public static int txMultiplier = 1;
     public static double redAngleOffset = -7;
@@ -24,7 +24,7 @@ public class Limelight extends SubsystemBase {
     double angle = 0;
     double lastAngle = 0;
 
-    double distance = 100;
+    public double distance = 100;
 
     public boolean resultIsValid = true;
 
@@ -55,7 +55,7 @@ public class Limelight extends SubsystemBase {
         return new RunCommand(()-> {
             if (limelight.getLatestResult().isValid()) {
                 resultIsValid = true;
-                double targetOffsetAngle_Vertical = - limelight.getLatestResult().getTy();
+                double targetOffsetAngle_Vertical = limelight.getLatestResult().getTy();
 
                 // how many degrees back is your limelight rotated from perfectly vertical;
 

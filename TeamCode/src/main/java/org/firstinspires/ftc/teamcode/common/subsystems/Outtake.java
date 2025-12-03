@@ -1,5 +1,6 @@
 package org.firstinspires.ftc.teamcode.common.subsystems;
 
+import android.graphics.Path;
 import android.media.VolumeShaper;
 
 import com.arcrobotics.ftclib.command.InstantCommand;
@@ -26,6 +27,7 @@ import org.firstinspires.ftc.teamcode.common.util.Globals;
 import org.firstinspires.ftc.teamcode.common.util.RobotState;
 import org.firstinspires.ftc.teamcode.common.util.UpdateAndPowerScheduler;
 
+import java.util.Objects;
 import java.util.Timer;
 import java.util.concurrent.TimeUnit;
 
@@ -36,6 +38,7 @@ public class Outtake extends SubsystemBase {
     public MotorEx transfer;
     double targetRobotAngle;
     double targetTurretAngle;
+    int turretTargetPos;
     Pose redGoalPose = new Pose(144, 144, 0);
     Pose blueGoalPose = new Pose(0, 144, 0);
     Pose targetGoalPose = redGoalPose;
@@ -46,6 +49,7 @@ public class Outtake extends SubsystemBase {
 
     public static int flywheelVelocity = 1000;
     public static double hoodangle = 0;
+    public static double hoodDownAngle = 0.22;
     public static double turretPower = 0.1;
 
     public static double P = 0.05;
@@ -53,8 +57,8 @@ public class Outtake extends SubsystemBase {
     public static int shootFromFarTriangleFlywheelVelo = 1740;
     public static double transferPower = 0.8;
     public static double transferStopPower = 0;
-    public static double gatePosOpen = 0;
-    public static double gatePosClosed = 0.11;
+    public static double gatePosOpen = 0.17;
+    public static double gatePosClosed = 0.3;
 
     public double previousError = 0;
     public double error = 0;
@@ -62,7 +66,7 @@ public class Outtake extends SubsystemBase {
     public double targetPosition = 0;
     public double errorIntegral = 0;
     public double errorDerivative = 0;
-    public double kP = 0;
+    public static double kP = 0.006;
     public double kI = 0;
     public double kD = 0;
 
@@ -78,6 +82,7 @@ public class Outtake extends SubsystemBase {
     String mode = "Nothing";
     boolean manualTurretAllowed = true;
     boolean transferOn = false;
+    boolean allowShoot = false;
     ElapsedTime speedUpTimer = new ElapsedTime();
     boolean timerOn = false;
     public static int speedUpTime = 500;
@@ -89,6 +94,7 @@ public class Outtake extends SubsystemBase {
         // Set up hardware
         flywheel = new MotorEx(OpModeReference.getInstance().getHardwareMap(), "FW", Motor.GoBILDA.BARE);
         turret = new MotorEx(OpModeReference.getInstance().getHardwareMap(), "T", Motor.GoBILDA.RPM_312);
+        turret.resetEncoder();
         transfer = new MotorEx(OpModeReference.getInstance().getHardwareMap(), "TW", Motor.GoBILDA.BARE);
         hoodL = OpModeReference.getInstance().getHardwareMap().get(Servo.class, "HL");
         hoodR = OpModeReference.getInstance().getHardwareMap().get(Servo.class, "HR");
@@ -96,6 +102,7 @@ public class Outtake extends SubsystemBase {
         hoodL.setDirection(Servo.Direction.REVERSE);
         flywheel.setRunMode(Motor.RunMode.VelocityControl);
         turret.setRunMode(Motor.RunMode.PositionControl);
+        turret.setPositionTolerance(25);
         flywheel.setInverted(true);
         turret.setPositionTolerance(10);
         turret.setPositionCoefficient(P);
@@ -119,58 +126,91 @@ public class Outtake extends SubsystemBase {
             turret.setRunMode(Motor.RunMode.RawPower);
             //Calculate P
             previousError=error;
-            error=targetPosition-position;
+            error=(turretTargetPos-turret.getCurrentPosition());
             //Calculate I
-            errorIntegral += error*(timePrevious-timenow);
+            errorIntegral += error*(timenow-timePrevious);
             //Calculate D
-            errorDerivative = (previousError-error)/(timePrevious-timenow);
+            errorDerivative = (previousError-error)/(timenow-timePrevious);
 
-            if (!(globals.getRobotState() == RobotState.INIT) && !override) {
-                if (!OpModeReference.getInstance().limelightSubsystem.resultIsValid) { // If limelight not seen, then use GoBilda PinPoint
+            // Turret stuff
+            if (globals.getRobotState() != RobotState.INIT && !override) {
+                double robotAngle = Math.toDegrees(OpModeReference.getInstance().pedroPathing.getHeading());
+                double requiredAngle = OpModeReference.getInstance().kalmanfilter.ReqAngle;
+                targetTurretAngle = (int) (robotAngle - requiredAngle);
+                // Spin to the angle given
+                turretTargetPos = (int) (ticksPerTurretDegree*targetTurretAngle);
+                turret.setTargetPosition(turretTargetPos);
+                turret.set(error*kP+errorIntegral*kI+errorDerivative*kD);
+                /*if ((turretTargetPos - turret.getCurrentPosition() < 0) && !turret.atTargetPosition()) {
+                    turretPower = turretPower * -1;
+                }
+                turret.set(turretPower);*/
+                if (turret.atTargetPosition()) {
                     turret.set(0);
-                    manualTurretControl(OpModeReference.getInstance().getGamePad2().getRightX());
-                }
-                else if (Math.abs(OpModeReference.getInstance().limelightSubsystem.angle)>0.01) {
+                    if (OpModeReference.getInstance().limelightSubsystem.resultIsValid) {
 
-                    turret.set(error*kP+errorIntegral*kI+errorDerivative*kD);
-
-                } else {
-                        manualTurretControl(OpModeReference.getInstance().getGamePad2().getRightX());
-                        turret.setTargetPosition(OpModeReference.getInstance().outtakeSubSystem.turret.getCurrentPosition());
-                        turret.set(turretPower);
-                        if (turret.atTargetPosition()) {
-                            turret.set(0);
-                        }
                     }
-
                 }
+            }
+
+//            if (!(globals.getRobotState() == RobotState.INIT) && !override) {
+//                if (OpModeReference.getInstance().limelightSubsystem.resultIsValid) {
+//                    turret.set(0);
+//                    manualTurretControl(OpModeReference.getInstance().getGamePad2().getRightX());
+//                }
+//                else if (Math.abs(OpModeReference.getInstance().limelightSubsystem.angle)>0.01) {
+//                    turret.set(error*kP+errorIntegral*kI+errorDerivative*kD);
+//                } else {
+//                        manualTurretControl(OpModeReference.getInstance().getGamePad2().getRightX());
+//                        turret.setTargetPosition(OpModeReference.getInstance().outtakeSubSystem.turret.getCurrentPosition());
+//                        turret.set(turretPower);
+//                        if (turret.atTargetPosition()) {
+//                            turret.set(0);
+//                        }
+//                    }
+//
+//                }
 
 
             if (globals.getRobotState() == RobotState.OUTTAKE) {
                 flywheel.setVelocity(flywheelVelocity);
                 flywheel.setRunMode(Motor.RunMode.VelocityControl);
+                if (mode.equals("Back Triangle")) {
+                    hoodangle = 0.4;
+                    flywheelVelocity = 2100;
+                }
                 hoodL.setPosition(hoodangle);
                 hoodR.setPosition(hoodangle);
-                if (!timerOn) {
+                if (allowShoot) {
+                    gate.setPosition(gatePosOpen);
+                    transfer.set(transferPower);
+                } else {
+                    gate.setPosition(gatePosClosed);
+                    transfer.set(transferStopPower);
+                }
+                /*if (!timerOn) {
                     timerOn = !timerOn;
                     speedUpTimer.reset();
                 }
                 if (speedUpTimer.time(TimeUnit.MILLISECONDS) > speedUpTime) {
                     gate.setPosition(gatePosOpen);
                     transfer.set(transferPower);
-                }
+                }*/
 
             } else if (globals.getRobotState() == RobotState.INIT) {
                 flywheel.setVelocity(0);
                 turret.set(0);
                 transfer.set(transferStopPower);
+            } else if (globals.getRobotState() == RobotState.INTAKE || globals.getRobotState() == RobotState.TRAVEL) {
+                    transfer.set(transferStopPower);
+                    gate.setPosition(gatePosClosed);
+                    flywheel.setVelocity(flywheelVelocity*0.85);
             } else if (globals.getRobotState()==RobotState.DEFENSE){
                 flywheel.setVelocity(0);
                 transfer.set(transferStopPower);
+                gate.setPosition(gatePosClosed);
             } else {
                 flywheel.setVelocity(flywheelVelocity*0.85);
-                transfer.set(transferStopPower);
-                gate.setPosition(gatePosClosed);
             }
         }, this);
     }
@@ -188,32 +228,10 @@ public class Outtake extends SubsystemBase {
         );
     }
 
-    public SequentialCommandGroup shoot() {
-        return new SequentialCommandGroup(
-            OpModeReference.getInstance().globalsSubSystem.setRobotStateCommand(RobotState.OUTTAKE),
-            new WaitCommand(400),
-            //OpModeReference.getInstance().transfer.transferBack().alongWith(new InstantCommand(()->flipper.setPosition(flipUpPos))),
-            new WaitCommand(500),
-            //new InstantCommand(()->flipper.setPosition(flipGroundPos)).andThen(
-            new WaitCommand(200),
-            //OpModeReference.getInstance().transfer.transfer().alongWith(
-            OpModeReference.getInstance().intakeSubSystem.transfer(),
-            new WaitCommand(1)
-        );
-    }
-
-    public SequentialCommandGroup stuckShoot() {
-        return new SequentialCommandGroup(
-                OpModeReference.getInstance().globalsSubSystem.setRobotStateCommand(RobotState.OUTTAKE),
-                new WaitCommand(400),
-                //OpModeReference.getInstance().transfer.transferBack().alongWith(OpModeReference.getInstance().intakeSubSystem.intakeBackwards()).alongWith(new InstantCommand(()->flipper.setPosition(flipUpPos))),
-                new WaitCommand(500),
-                //new InstantCommand(()->flipper.setPosition(flipGroundPos)).andThen(
-                        new WaitCommand(200),
-                //OpModeReference.getInstance().transfer.transfer().alongWith(
-                        OpModeReference.getInstance().intakeSubSystem.transfer(),
-                new WaitCommand(1)
-        );
+    public InstantCommand shoot() {
+        return new InstantCommand(()-> {
+            allowShoot = !allowShoot;
+        });
     }
 
     public SequentialCommandGroup autonomousShoot() {
@@ -267,8 +285,9 @@ public class Outtake extends SubsystemBase {
     public void periodic() {
         OpModeReference.getInstance().getTelemetry().addData("Flywheel Velocity", flywheel.getVelocity());
         OpModeReference.getInstance().getTelemetry().addData("Hood Pos", hoodL.getPosition());
-        OpModeReference.getInstance().getTelemetry().addData("RobotAngle", targetRobotAngle);
         OpModeReference.getInstance().getTelemetry().addData("TurretAngle", targetTurretAngle);
+        OpModeReference.getInstance().getTelemetry().addData("Current Turret Pos", turret.getCurrentPosition());
+        OpModeReference.getInstance().getTelemetry().addData("Target Turret Pos", turretTargetPos);
         OpModeReference.getInstance().getTelemetry().addData("Mode", mode);
     }
 }

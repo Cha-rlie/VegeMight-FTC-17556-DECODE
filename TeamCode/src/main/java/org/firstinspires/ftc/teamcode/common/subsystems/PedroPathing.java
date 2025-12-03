@@ -5,14 +5,10 @@ import com.arcrobotics.ftclib.command.PerpetualCommand;
 import com.arcrobotics.ftclib.command.RunCommand;
 import com.arcrobotics.ftclib.command.SubsystemBase;
 import com.bylazar.configurables.annotations.Configurable;
-import com.pedropathing.control.KalmanFilter;
 import com.pedropathing.follower.Follower;
-import com.pedropathing.follower.FollowerConstants;
 import com.pedropathing.geometry.Pose;
-import com.qualcomm.hardware.limelightvision.Limelight3A;
 
 import org.firstinspires.ftc.teamcode.common.OpModeReference;
-import org.firstinspires.ftc.teamcode.common.util.KalmanFilter;
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 
 @Configurable

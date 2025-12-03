@@ -8,12 +8,14 @@ import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.teamcode.common.subsystems.DriveTrain;
 import org.firstinspires.ftc.teamcode.common.subsystems.Flag;
 import org.firstinspires.ftc.teamcode.common.subsystems.Intake;
+import org.firstinspires.ftc.teamcode.common.subsystems.LightIndicators;
 import org.firstinspires.ftc.teamcode.common.subsystems.Limelight;
 import org.firstinspires.ftc.teamcode.common.subsystems.Outtake;
 import org.firstinspires.ftc.teamcode.common.subsystems.PedroPathing;
 //import org.firstinspires.ftc.teamcode.common.subsystems.Transfer;
 import org.firstinspires.ftc.teamcode.common.util.Globals;
-import org.firstinspires.ftc.teamcode.common.util.KalmanFilter;
+import org.firstinspires.ftc.teamcode.common.util.ShooterCalcs;
+import org.firstinspires.ftc.teamcode.common.util.VegeKalmanFilter;
 import org.firstinspires.ftc.teamcode.common.util.UpdateAndPowerScheduler;
 
 public class OpModeReference {
@@ -24,13 +26,16 @@ public class OpModeReference {
     Telemetry telemetry;
     public boolean isRedAlliance = true;
     public Globals globalsSubSystem;
-    public KalmanFilter kalmanfilter;
+    public VegeKalmanFilter kalmanfilter;
     public DriveTrain driveTrainSubSystem;
     public Intake intakeSubSystem;
     public Outtake outtakeSubSystem;
     public Limelight limelightSubsystem;
+
+    public ShooterCalcs shooterCalcs;
     //public Transfer transfer;
     public Flag flagSubsystem;
+    public LightIndicators lightIndicators;
     public UpdateAndPowerScheduler updateAndPowerScheduler;
     public PedroPathing pedroPathing;
 
@@ -51,13 +56,15 @@ public class OpModeReference {
         globalsSubSystem = new Globals();
         limelightSubsystem = new Limelight();
         pedroPathing = new PedroPathing();
-        kalmanfilter= new KalmanFilter();
+        kalmanfilter= new VegeKalmanFilter();
+        shooterCalcs = new ShooterCalcs();
         if (!visionTesting) {
             driveTrainSubSystem = new DriveTrain();
             intakeSubSystem = new Intake();
             outtakeSubSystem = new Outtake();
             //transfer = new Transfer();
             flagSubsystem = new Flag();
+            lightIndicators = new LightIndicators();
         }
     }
 

@@ -78,12 +78,8 @@ public abstract class   FreshLibrary extends CommandOpMode {
         gamePad1.getGamepadButton(GamepadKeys.Button.X).whenPressed(OpModeReference.getInstance().outtakeSubSystem.shootFrontTriangle());
         gamePad2.getGamepadButton(GamepadKeys.Button.B).whenPressed(OpModeReference.getInstance().outtakeSubSystem.shootBackTriangle());
         gamePad2.getGamepadButton(GamepadKeys.Button.X).whenPressed(OpModeReference.getInstance().outtakeSubSystem.shootFrontTriangle());
-        //gamePad1.getGamepadButton(GamepadKeys.Button.DPAD_DOWN).whenPressed(OpModeReference.getInstance().transfer.transferBack());
-        //gamePad2.getGamepadButton(GamepadKeys.Button.DPAD_DOWN).whenPressed(OpModeReference.getInstance().transfer.transferBack());
-        gamePad2.getGamepadButton(GamepadKeys.Button.DPAD_DOWN).whenPressed(OpModeReference.getInstance().outtakeSubSystem.stuckShoot());
-        //gamePad1.getGamepadButton(GamepadKeys.Button.DPAD_UP).whenPressed(OpModeReference.getInstance().transfer.transferForwards());
-        //gamePad2.getGamepadButton(GamepadKeys.Button.DPAD_UP).whenPressed(OpModeReference.getInstance().transfer.transferForwards());
-        gamePad2.getGamepadButton(GamepadKeys.Button.BACK).whenPressed(OpModeReference.getInstance().outtakeSubSystem.stuckShoot());
+        gamePad1.getGamepadButton(GamepadKeys.Button.A).whenPressed(OpModeReference.getInstance().outtakeSubSystem.shoot());
+        gamePad2.getGamepadButton(GamepadKeys.Button.A).whenPressed(OpModeReference.getInstance().outtakeSubSystem.shoot());
         //gamePad2.getGamepadButton(GamepadKeys.Button.BACK).whenPressed(OpModeReference.getInstance().outtakeSubSystem.alignTurret());
         gamePad1.getGamepadButton(GamepadKeys.Button.DPAD_LEFT).whenPressed(new InstantCommand(()->{
             follower.followPath(pathChain.get());

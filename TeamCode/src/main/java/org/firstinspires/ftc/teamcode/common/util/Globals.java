@@ -79,7 +79,7 @@ public class Globals extends SubsystemBase {
     public InstantCommand toggleDefense(){
         return new InstantCommand(()->{
             if (getRobotState()==RobotState.DEFENSE) {
-                robotState = RobotState.OUTTAKE;
+                robotState = RobotState.TRAVEL;
             } else {
                 robotState = RobotState.DEFENSE;
             }

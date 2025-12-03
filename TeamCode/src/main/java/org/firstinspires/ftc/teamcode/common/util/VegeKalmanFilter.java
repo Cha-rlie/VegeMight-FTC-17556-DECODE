@@ -1,17 +1,17 @@
 package org.firstinspires.ftc.teamcode.common.util;
 
+import android.graphics.Path;
+
 import com.arcrobotics.ftclib.command.PerpetualCommand;
 import com.arcrobotics.ftclib.command.RunCommand;
 import com.arcrobotics.ftclib.command.SubsystemBase;
 import com.qualcomm.hardware.gobilda.GoBildaPinpointDriver;
-import com.qualcomm.hardware.limelightvision.Limelight3A;
-import com.qualcomm.hardware.motors.GoBILDA5201Series;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.teamcode.common.OpModeReference;
 
-public class KalmanFilter extends SubsystemBase {
-    public static final KalmanFilter INSTANCE = new KalmanFilter();
+public class VegeKalmanFilter extends SubsystemBase {
+    //public static final VegeKalmanFilter INSTANCE = new VegeKalmanFilter();
     double x = 0;  //(get value from pinpoint/autonomous) - starting value
     double prevx = 0;
     double y = 0; //(get value from pinpoint/autonomous) - starting value
@@ -29,15 +29,16 @@ public class KalmanFilter extends SubsystemBase {
     long currenttime = 0;
     long previoustime = 0; // better way to do time?
 
-    double ReqAngle = 0;
+    public double ReqAngle = 0; // Degrees
+    public double ReqDist = 0;
 
     ElapsedTime Timer;
     GoBildaPinpointDriver pinpointDriver;
 
-    public KalmanFilter() {
+    public VegeKalmanFilter() {
         Timer = new ElapsedTime();
         Timer.reset();
-        pinpointDriver = new OpModeReference().getHardwareMap().get(GoBildaPinpointDriver.class,"pinpoint");
+        pinpointDriver = OpModeReference.getInstance().getHardwareMap().get(GoBildaPinpointDriver.class,"pinpoint");
         setDefaultCommand(new PerpetualCommand(calculateAngle()));
     }
 
@@ -60,29 +61,31 @@ public class KalmanFilter extends SubsystemBase {
             qy = Vary * ((currenttime-previoustime)*(currenttime-previoustime));
             Vary = Vary + qy;
 
-
-            if (pinpointDriver.getDeviceStatus() == GoBildaPinpointDriver.DeviceStatus.READY) {
-                //Calculate Kalman Gain
-                Kx = (Varx / (Varx + rPinpoint));
-                Ky = (Vary / (Vary + rPinpoint));
+            Kx = (Varx / (Varx + rPinpoint));
+            Ky = (Vary / (Vary + rPinpoint));
 
 
-                x = prevx + Kx * (OpModeReference.getInstance().pedroPathing.getX() - prevx);
-                y = prevy + Ky * (OpModeReference.getInstance().pedroPathing.getY() - prevy);
+            x = prevx + Kx * (OpModeReference.getInstance().pedroPathing.getX() - prevx);
+            y = prevy + Ky * (OpModeReference.getInstance().pedroPathing.getY() - prevy);
 
-                //Update Variance
+            //Update Variance
 
-                Varx *= (1 - Kx);
-                Vary *= (1 - Ky);
+            Varx *= (1 - Kx);
+            Vary *= (1 - Ky);
 
-                // Calculate angle
-                if (OpModeReference.getInstance().isRedAlliance) {
-                    ReqAngle = Math.toDegrees(Math.atan((144 - x) / (144 - y)));
-                } else {
-                    ReqAngle = Math.toDegrees(Math.atan((-x) / (144 - y)));
-                }
+            // Calculate angle
+            if (OpModeReference.getInstance().isRedAlliance) {
+                ReqAngle = Math.toDegrees(Math.atan((144 - y) / (144 - x)));
+                ReqDist = Math.sqrt((144-x)*(144-x)+(144-y)*(144-y));
+            } else {
+                ReqAngle = Math.toDegrees(Math.atan((144-y) / (- x)));
+                ReqDist = Math.sqrt((-x)*(-x)+(144-y)*(144-y));
             }
-            if (OpModeReference.getInstance().limelightSubsystem.resultIsValid) {
+
+            /*if (pinpointDriver.getDeviceStatus() == GoBildaPinpointDriver.DeviceStatus.READY) {
+                //Calculate Kalman Gain
+            }*/
+            /*if (OpModeReference.getInstance().limelightSubsystem.resultIsValid) {
                 //Calculate Kalman Gain
                 Kx = (Varx / (Varx + rLimelight));
                 Ky = (Vary / (Vary + rLimelight));
@@ -102,7 +105,7 @@ public class KalmanFilter extends SubsystemBase {
                 } else {
                     ReqAngle = Math.toDegrees(Math.atan((-x) / (144 - y)));
                 }
-            }
+            }*/
         }, this);
     }
 
