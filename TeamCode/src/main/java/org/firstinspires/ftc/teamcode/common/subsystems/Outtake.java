@@ -1,8 +1,5 @@
 package org.firstinspires.ftc.teamcode.common.subsystems;
 
-import android.graphics.Path;
-import android.media.VolumeShaper;
-
 import com.arcrobotics.ftclib.command.InstantCommand;
 import com.arcrobotics.ftclib.command.PerpetualCommand;
 import com.arcrobotics.ftclib.command.RunCommand;
@@ -14,22 +11,13 @@ import com.arcrobotics.ftclib.hardware.motors.Motor;
 import com.arcrobotics.ftclib.hardware.motors.MotorEx;
 import com.bylazar.configurables.annotations.Configurable;
 import com.pedropathing.geometry.Pose;
-import com.qualcomm.hardware.bosch.BNO055IMU;
-import com.qualcomm.hardware.gobilda.GoBildaPinpointDriver;
-import com.qualcomm.robotcore.eventloop.opmode.OpModeManager;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
-import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.teamcode.common.OpModeReference;
-import org.firstinspires.ftc.teamcode.common.util.CommandScheduler;
 import org.firstinspires.ftc.teamcode.common.util.Globals;
 import org.firstinspires.ftc.teamcode.common.util.RobotState;
 import org.firstinspires.ftc.teamcode.common.util.UpdateAndPowerScheduler;
-
-import java.util.Objects;
-import java.util.Timer;
-import java.util.concurrent.TimeUnit;
 
 @Configurable
 public class Outtake extends SubsystemBase {
@@ -57,8 +45,8 @@ public class Outtake extends SubsystemBase {
     public static int shootFromFarTriangleFlywheelVelo = 1740;
     public static double transferPower = 0.8;
     public static double transferStopPower = 0;
-    public static double gatePosOpen = 0.17;
-    public static double gatePosClosed = 0.3;
+    public static double gatePosOpen = 0.3;
+    public static double gatePosClosed = 0.17;
 
     public double previousError = 0;
     public double error = 0;
@@ -79,13 +67,15 @@ public class Outtake extends SubsystemBase {
 
     boolean override = false;
 
-    String mode = "Nothing";
+    String mode = "Back Triangle";
     boolean manualTurretAllowed = true;
     boolean transferOn = false;
     boolean allowShoot = false;
-    ElapsedTime speedUpTimer = new ElapsedTime();
+    ElapsedTime angleTimer = new ElapsedTime();
+    boolean angleAdjusted = false;
     boolean timerOn = false;
-    public static int speedUpTime = 500;
+    public static int angleTime = 250;
+    int[] lastVelocity = new int[8];
 
     public Outtake() {
         targetGoalPose = OpModeReference.getInstance().isRedAlliance ? redGoalPose : blueGoalPose;
@@ -96,6 +86,7 @@ public class Outtake extends SubsystemBase {
         turret = new MotorEx(OpModeReference.getInstance().getHardwareMap(), "T", Motor.GoBILDA.RPM_312);
         turret.resetEncoder();
         transfer = new MotorEx(OpModeReference.getInstance().getHardwareMap(), "TW", Motor.GoBILDA.BARE);
+        transfer.setInverted(true);
         hoodL = OpModeReference.getInstance().getHardwareMap().get(Servo.class, "HL");
         hoodR = OpModeReference.getInstance().getHardwareMap().get(Servo.class, "HR");
         gate = OpModeReference.getInstance().getHardwareMap().get(Servo.class, "G");
@@ -112,6 +103,7 @@ public class Outtake extends SubsystemBase {
 
         globals = OpModeReference.getInstance().globalsSubSystem;
         updateAndPowerScheduler = OpModeReference.getInstance().updateAndPowerScheduler;
+        shootBackTriangle().schedule();
         setDefaultCommand(new PerpetualCommand(defaultCommand()));
 
     }
@@ -175,12 +167,52 @@ public class Outtake extends SubsystemBase {
             if (globals.getRobotState() == RobotState.OUTTAKE) {
                 flywheel.setVelocity(flywheelVelocity);
                 flywheel.setRunMode(Motor.RunMode.VelocityControl);
-                if (mode.equals("Back Triangle")) {
-                    hoodangle = 0.4;
-                    flywheelVelocity = 2100;
+                if (mode.equals("Front Triangle")) {
+                    flywheelVelocity = (int) ((3.32105*(OpModeReference.getInstance().kalmanfilter.ReqDist))+1203.52797);
+                    //// could use lowest setting; trajectory cannot reach at lower distances then 100 i.e;
+                    //regression
+
+                    if (OpModeReference.getInstance().kalmanfilter.ReqDist<125){
+                        flywheelVelocity = 1600;
+                        hoodangle = 0.22;
+                    }
+
+                    if (allowShoot && angleTimer.milliseconds() > angleTime) {
+                        hoodangle = 0.22;
+                        angleTimer.reset();
+                        angleAdjusted = true;
+                    } else if (angleAdjusted && angleTimer.milliseconds() > 500) {
+                        hoodangle = 0.43;
+                        angleAdjusted = false;
+                    } else if (!angleAdjusted) {
+                        hoodangle = 0.43;
+                    }
+                    for (int i = lastVelocity.length - 1; i > 0; i--) {
+                        lastVelocity[i] = lastVelocity[i-1];
+                    }
+                    lastVelocity[0] = (int) flywheel.getVelocity();
+                    hoodL.setPosition(hoodangle);
+                    hoodR.setPosition(hoodangle);
                 }
-                hoodL.setPosition(hoodangle);
-                hoodR.setPosition(hoodangle);
+                if (mode.equals("Back Triangle")) {
+                    flywheelVelocity = 1950;
+                    if (allowShoot && angleTimer.milliseconds() > angleTime) {
+                        hoodangle = 0.22;
+                        angleTimer.reset();
+                        angleAdjusted = true;
+                    } else if (angleAdjusted && angleTimer.milliseconds() > 500) {
+                        hoodangle = 0.4;
+                        angleAdjusted = false;
+                    } else if (!angleAdjusted) {
+                        hoodangle = 0.4;
+                    }
+                    for (int i = lastVelocity.length - 1; i > 0; i--) {
+                        lastVelocity[i] = lastVelocity[i-1];
+                    }
+                    lastVelocity[0] = (int) flywheel.getVelocity();
+                    hoodL.setPosition(hoodangle);
+                    hoodR.setPosition(hoodangle);
+                }
                 if (allowShoot) {
                     gate.setPosition(gatePosOpen);
                     transfer.set(transferPower);
@@ -231,6 +263,7 @@ public class Outtake extends SubsystemBase {
     public InstantCommand shoot() {
         return new InstantCommand(()-> {
             allowShoot = !allowShoot;
+            angleTimer.reset();
         });
     }
 
@@ -250,21 +283,13 @@ public class Outtake extends SubsystemBase {
     public SequentialCommandGroup shootBackTriangle(){
         return new SequentialCommandGroup(
                 new InstantCommand(()->mode="Back Triangle"),
-                new InstantCommand(()->flywheelVelocity=shootFromFarTriangleFlywheelVelo).andThen(
-                new InstantCommand(()->hoodangle=0.2))
-        );
+                new InstantCommand(()->flywheelVelocity=shootFromFarTriangleFlywheelVelo));
     }
 
-    public InstantCommand shootFrontTriangle(){
-        return new InstantCommand(()-> {
-            mode = "Front Triangle";
-            if (OpModeReference.getInstance().limelightSubsystem.distance > 100) {
-                flywheelVelocity = 1530;
-            } else {
-                flywheelVelocity = 1250;
-            }
-            hoodangle = 0.1;
-        });
+    public SequentialCommandGroup shootFrontTriangle(){
+        return new SequentialCommandGroup(
+                new InstantCommand(()->mode="Front Triangle"),
+                new InstantCommand(()->flywheelVelocity=shootFromFarTriangleFlywheelVelo));
     }
 
     public SequentialCommandGroup turretTurnToPos(int targetPos) {
@@ -284,6 +309,7 @@ public class Outtake extends SubsystemBase {
     @Override
     public void periodic() {
         OpModeReference.getInstance().getTelemetry().addData("Flywheel Velocity", flywheel.getVelocity());
+        OpModeReference.getInstance().getTelemetry().addData("Last Velocities", lastVelocity);
         OpModeReference.getInstance().getTelemetry().addData("Hood Pos", hoodL.getPosition());
         OpModeReference.getInstance().getTelemetry().addData("TurretAngle", targetTurretAngle);
         OpModeReference.getInstance().getTelemetry().addData("Current Turret Pos", turret.getCurrentPosition());
