@@ -172,6 +172,11 @@ public class Outtake extends SubsystemBase {
                     //// could use lowest setting; trajectory cannot reach at lower distances then 100 i.e;
                     //regression
 
+                    if (OpModeReference.getInstance().kalmanfilter.ReqDist<125){
+                        flywheelVelocity = 1600;
+                        hoodangle = 0.22;
+                    }
+
                     if (allowShoot && angleTimer.milliseconds() > angleTime) {
                         hoodangle = 0.22;
                         angleTimer.reset();
