@@ -75,10 +75,10 @@ public class VegeKalmanFilter extends SubsystemBase {
 
             // Calculate angle
             if (OpModeReference.getInstance().isRedAlliance) {
-                ReqAngle = Math.toDegrees(Math.atan((144 - y) / (144 - x)));
+                ReqAngle = Math.toDegrees(Math.atan2((144 - y),(144 - x)));
                 ReqDist = Math.sqrt((144-x)*(144-x)+(144-y)*(144-y));
             } else {
-                ReqAngle = Math.toDegrees(Math.atan((144-y) / (- x)));
+                ReqAngle = Math.toDegrees(Math.atan2((144-y),(- x)));
                 ReqDist = Math.sqrt((-x)*(-x)+(144-y)*(144-y));
             }
 
