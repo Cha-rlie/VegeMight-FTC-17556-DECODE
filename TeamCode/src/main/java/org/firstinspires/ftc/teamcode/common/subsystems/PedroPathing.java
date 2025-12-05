@@ -61,4 +61,14 @@ public class PedroPathing extends SubsystemBase {
 
     public double getVelocityY() {return follower.getVelocity().getYComponent();}
 
+    public InstantCommand resetBotPose() {
+        return new InstantCommand(()->{
+            if (OpModeReference.getInstance().isRedAlliance) {
+                follower.setPose(new Pose(0+(17.9/2), 0+(16.22/2), Math.toRadians(180)));
+            } else {
+                follower.setPose(new Pose(144-(17.9/2), 0+(16.22/2), 0));
+            }
+        });
+    }
+
 }

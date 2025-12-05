@@ -19,7 +19,7 @@ import org.firstinspires.ftc.teamcode.common.util.RobotState;
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 
 
-@Autonomous(name="🟦 Blue Nine Artifact Auto")
+@Autonomous(name="BLUE 9 Artifact", group="9 Auto")
 public class BlueNineArtifactAuto extends CommandOpMode {
 
     // Initialise the PedroPathing Follower
@@ -33,8 +33,8 @@ public class BlueNineArtifactAuto extends CommandOpMode {
 
     // Initialise the poses
 
-    private final Pose startPose = new Pose(87, 10,Math.toRadians(-90));
-    private final Pose leavePose = new Pose(16, -16, Math.toRadians(-90));
+    private final Pose startPose = new Pose(144-87, 10,Math.toRadians(-90));
+    private final Pose leavePose = new Pose(144-16, -16, Math.toRadians(-90));
 
     private PathChain Path1, Path2, Path3, Path4, PathLeave;
     private boolean readyForNext = false;
@@ -52,7 +52,7 @@ public class BlueNineArtifactAuto extends CommandOpMode {
                                 new Pose(144-135.111, 36.222)
                         )
                 )
-                .setLinearHeadingInterpolation(Math.toRadians(-90), Math.toRadians(180))
+                .setLinearHeadingInterpolation(Math.toRadians(-90), Math.toRadians(-180))
                 .build();
 
         Path2 = follower
@@ -60,7 +60,7 @@ public class BlueNineArtifactAuto extends CommandOpMode {
                 .addPath(
                         new BezierLine(new Pose(144-135.111, 36.222), new Pose(144-84.667, 11.556))
                 )
-                .setLinearHeadingInterpolation(Math.toRadians(180), Math.toRadians(-90))
+                .setLinearHeadingInterpolation(Math.toRadians(-180), Math.toRadians(-90))
                 .build();
 
         Path3 = follower
@@ -73,7 +73,7 @@ public class BlueNineArtifactAuto extends CommandOpMode {
                                 new Pose(144-135.333, 59.333)
                         )
                 )
-                .setLinearHeadingInterpolation(Math.toRadians(-90), Math.toRadians(180))
+                .setLinearHeadingInterpolation(Math.toRadians(-90), Math.toRadians(-180))
                 .build();
 
         Path4 = follower
@@ -81,13 +81,13 @@ public class BlueNineArtifactAuto extends CommandOpMode {
                 .addPath(
                         new BezierLine(new Pose(144-135.333, 59.333), new Pose(144-84.667, 11.778))
                 )
-                .setLinearHeadingInterpolation(Math.toRadians(180), Math.toRadians(-90))
+                .setLinearHeadingInterpolation(Math.toRadians(-180), Math.toRadians(-90))
                 .build();
 
         PathLeave = follower
                 .pathBuilder()
                 .addPath(
-                        new BezierLine(new Pose(144-84.667, 11.778), new Pose(144-84.667, 48))
+                        new BezierLine(new Pose(144-84.667, 11.778), new Pose(144-84.667, 56))
                 )
                 .setLinearHeadingInterpolation(Math.toRadians(-90), Math.toRadians(-90))
                 .build();

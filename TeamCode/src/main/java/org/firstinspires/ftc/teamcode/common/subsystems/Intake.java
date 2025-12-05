@@ -43,39 +43,41 @@ public class Intake extends SubsystemBase {
     public RunCommand defaultCommand() {
         return new RunCommand(()->{
             if (globals.getRobotState() == RobotState.INTAKE) {
-                intakeSpinner.set(intakeSpinnerPower);
-            } else if (globals.getRobotState() == RobotState.INIT || globals.getRobotState() == RobotState.TRAVEL) {
+                if (!override) {intakeSpinner.set(intakeSpinnerPower);}
+            } else if (globals.getRobotState() == RobotState.INIT) {
                 intakeSpinner.set(0);
-                override = true;
+                override = false;
+            } else if (globals.getRobotState() == RobotState.TRAVEL) {
+                if (!override) {intakeSpinner.set(0);}
             } else if (globals.getRobotState() == RobotState.OUTTAKE) {
-                intakeSpinner.set(intakeSpinnerPower);
+                if (!override) {intakeSpinner.set(intakeSpinnerPower);}
             } else {
-                intakeSpinner.set(intakeSpinnerPower - 0.15);
+                if (!override) {intakeSpinner.set(intakeSpinnerPower - 0.15);}
             }
-            if (Math.abs(intakeSpinner.getVelocity())<25) {
-                if (!override && globals.getRobotState() != RobotState.OUTTAKE) {
-                    if (timerRunning) {
-                        if (stuckTimer.milliseconds() > timerLength) {
-                            intakeSpinner.set(-intakeSpinnerPower);
-                        }
-                    } else {
-                        stuckTimer.reset();
-                        timerRunning = true;
-                    }
-                }
-                if (allowBackSpin) {
-                    if (timerRunning) {
-                        if (stuckTimer.milliseconds() > timerLength) {
-                            intakeSpinner.set(-intakeSpinnerPower);
-                        }
-                    } else {
-                        stuckTimer.reset();
-                        timerRunning = true;
-                    }
-                }
-            } else {
-                timerRunning = false;
-            }
+//            if (Math.abs(intakeSpinner.getVelocity())<25) {
+//                if (!override && globals.getRobotState() != RobotState.OUTTAKE) {
+//                    if (timerRunning) {
+//                        if (stuckTimer.milliseconds() > timerLength) {
+//                            intakeSpinner.set(-intakeSpinnerPower);
+//                        }
+//                    } else {
+//                        stuckTimer.reset();
+//                        timerRunning = true;
+//                    }
+//                }
+//                if (allowBackSpin) {
+//                    if (timerRunning) {
+//                        if (stuckTimer.milliseconds() > timerLength) {
+//                            intakeSpinner.set(-intakeSpinnerPower);
+//                        }
+//                    } else {
+//                        stuckTimer.reset();
+//                        timerRunning = true;
+//                    }
+//                }
+//            } else {
+//                timerRunning = false;
+//            }
 //            if (updateAndPowerScheduler.outtakeUpdate) {
 //                if (!updateAndPowerScheduler.powerOuttake) {
 //                    //disable
@@ -94,6 +96,16 @@ public class Intake extends SubsystemBase {
                 new WaitCommand(1000),
                 new InstantCommand(()->intakeSpinner.set(0)),
                 new InstantCommand(()->override = false));
+    }
+
+    public SequentialCommandGroup spitOut() {
+        return new SequentialCommandGroup(
+                new InstantCommand(()->override = true),
+                new InstantCommand(()->intakeSpinner.set(-0.9)),
+                new WaitCommand(600),
+                new InstantCommand(()->intakeSpinner.set(intakeSpinnerPower)),
+                new InstantCommand(()->override = false)
+        );
     }
 
     public SequentialCommandGroup intakeBackwards() {

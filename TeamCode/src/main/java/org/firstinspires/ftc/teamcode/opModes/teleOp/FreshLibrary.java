@@ -2,6 +2,7 @@ package org.firstinspires.ftc.teamcode.opModes.teleOp;
 
 import com.arcrobotics.ftclib.command.CommandOpMode;
 import com.arcrobotics.ftclib.command.CommandScheduler;
+import com.arcrobotics.ftclib.command.ConditionalCommand;
 import com.arcrobotics.ftclib.command.InstantCommand;
 import com.arcrobotics.ftclib.gamepad.GamepadEx;
 import com.arcrobotics.ftclib.gamepad.GamepadKeys;
@@ -89,6 +90,14 @@ public abstract class   FreshLibrary extends CommandOpMode {
         gamePad2.getGamepadButton(GamepadKeys.Button.DPAD_RIGHT).whenPressed(new InstantCommand(()-> endAutoPathing=true));
         gamePad2.getGamepadButton(GamepadKeys.Button.START).whenPressed((OpModeReference.getInstance().flagSubsystem.toggleFlag()));
         gamePad1.getGamepadButton(GamepadKeys.Button.LEFT_STICK_BUTTON).and(gamePad1.getGamepadButton(GamepadKeys.Button.RIGHT_STICK_BUTTON).whenPressed(OpModeReference.getInstance().globalsSubSystem.toggleDefense()));
+
+        // Emergencies
+        // Reset bot pose
+        gamePad1.getGamepadButton(GamepadKeys.Button.BACK).and(gamePad1.getGamepadButton(GamepadKeys.Button.START).whenPressed(OpModeReference.getInstance().pedroPathing.resetBotPose()));
+        gamePad2.getGamepadButton(GamepadKeys.Button.BACK).and(gamePad1.getGamepadButton(GamepadKeys.Button.START).whenPressed(OpModeReference.getInstance().pedroPathing.resetBotPose()));
+        // Spit stuck balls out backwards
+        gamePad2.getGamepadButton(GamepadKeys.Button.DPAD_DOWN).whenPressed(OpModeReference.getInstance().intakeSubSystem.spitOut());
+        gamePad2.getGamepadButton(GamepadKeys.Button.DPAD_LEFT).whenPressed(OpModeReference.getInstance().outtakeSubSystem.toggleTurretAlignmentInput());
     }
 
     /* Gamepad 2

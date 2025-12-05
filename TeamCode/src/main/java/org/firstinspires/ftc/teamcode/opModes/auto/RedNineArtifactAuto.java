@@ -20,7 +20,7 @@ import org.firstinspires.ftc.teamcode.common.util.RobotState;
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 
 
-@Autonomous(name="🟥 Red Nine Artifact Auto")
+@Autonomous(name="RED 9 Artifact", group="9 Auto")
 public class RedNineArtifactAuto extends CommandOpMode {
 
     // Initialise the PedroPathing Follower
@@ -88,7 +88,7 @@ public class RedNineArtifactAuto extends CommandOpMode {
         PathLeave = follower
                 .pathBuilder()
                 .addPath(
-                        new BezierLine(new Pose(84.667, 11.778), new Pose(84.667, 48))
+                        new BezierLine(new Pose(84.667, 11.778), new Pose(84.667, 56))
                 )
                 .setLinearHeadingInterpolation(Math.toRadians(-90), Math.toRadians(-90))
                 .build();

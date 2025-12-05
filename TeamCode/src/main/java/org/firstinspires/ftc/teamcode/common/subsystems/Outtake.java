@@ -76,6 +76,7 @@ public class Outtake extends SubsystemBase {
     boolean timerOn = false;
     public static int angleTime = 250;
     int[] lastVelocity = new int[8];
+    boolean usePedro = true;
 
     public Outtake() {
         targetGoalPose = OpModeReference.getInstance().isRedAlliance ? redGoalPose : blueGoalPose;
@@ -131,73 +132,75 @@ public class Outtake extends SubsystemBase {
             //Calculate D
             errorDerivative = (previousError-error)/(timenow-timePrevious);
 
-            // Turret stuff
-            if (globals.getRobotState() != RobotState.INIT && !override) {
-                double robotAngle = Math.toDegrees(OpModeReference.getInstance().pedroPathing.getHeading());
-                if (robotAngle < -10) {
-                    robotAngle = robotAngle+180;
-                    double requiredAngle = OpModeReference.getInstance().kalmanfilter.ReqAngle;
-                    if ((int) (robotAngle- requiredAngle)<-135) {
-                        targetTurretAngle = -135;
-                    } else if ((int) (robotAngle- requiredAngle)>135) {
-                        targetTurretAngle = 135;
-                    } else {
-                        targetTurretAngle = (int) (robotAngle- requiredAngle);
+            // TURRET STUFF
+            if (usePedro) {
+                if (globals.getRobotState() != RobotState.INIT && !override) {
+                    double robotAngle = Math.toDegrees(OpModeReference.getInstance().pedroPathing.getHeading());
+                    if (robotAngle < -10) {
+                        robotAngle = robotAngle+180;
+                        double requiredAngle = OpModeReference.getInstance().kalmanfilter.ReqAngle;
+                        if ((int) (robotAngle- requiredAngle)<-135) {
+                            targetTurretAngle = -135;
+                        } else if ((int) (robotAngle- requiredAngle)>135) {
+                            targetTurretAngle = 135;
+                        } else {
+                            targetTurretAngle = (int) (robotAngle- requiredAngle);
+                        }
+                    } else if (robotAngle > 10){
+                        robotAngle = robotAngle-180;
+                        double requiredAngle = OpModeReference.getInstance().kalmanfilter.ReqAngle;
+                        if ((int) (robotAngle- requiredAngle)<-135) {
+                            targetTurretAngle = -135;
+                        } else if ((int) (robotAngle- requiredAngle)>135) {
+                            targetTurretAngle = 135;
+                        } else {
+                            targetTurretAngle = (int) (robotAngle- requiredAngle);
+                        }
                     }
-                } else if (robotAngle > 10){
-                    robotAngle = robotAngle-180;
-                    double requiredAngle = OpModeReference.getInstance().kalmanfilter.ReqAngle;
-                    if ((int) (robotAngle- requiredAngle)<-135) {
-                        targetTurretAngle = -135;
-                    } else if ((int) (robotAngle- requiredAngle)>135) {
-                        targetTurretAngle = 135;
-                    } else {
-                        targetTurretAngle = (int) (robotAngle- requiredAngle);
-                    }
-                }
 
 
 
 
-                // Take Kalman Filter angle (pi to -pi)
+                    // Take Kalman Filter angle (pi to -pi)
 
-                // Find Robot Angle -> (pi to -pi) given
-                // Convert to Turret angle -> (pi to -pi) 180+180 -> if RA > 0; angle = RA-180; else +180
+                    // Find Robot Angle -> (pi to -pi) given
+                    // Convert to Turret angle -> (pi to -pi) 180+180 -> if RA > 0; angle = RA-180; else +180
 
 
-                // Spin to the angle given
-                turretTargetPos = (int) (ticksPerTurretDegree*targetTurretAngle);
-                turret.setTargetPosition(turretTargetPos);
-                turret.set(error*kP+errorIntegral*kI+errorDerivative*kD);
+                    // Spin to the angle given
+                    turretTargetPos = (int) (ticksPerTurretDegree*targetTurretAngle);
+                    turret.setTargetPosition(turretTargetPos);
+                    turret.set(error*kP+errorIntegral*kI+errorDerivative*kD);
                 /*if ((turretTargetPos - turret.getCurrentPosition() < 0) && !turret.atTargetPosition()) {
                     turretPower = turretPower * -1;
                 }
                 turret.set(turretPower);*/
-                if (turret.atTargetPosition()) {
-                    turret.set(0);
-                    if (OpModeReference.getInstance().limelightSubsystem.resultIsValid) {
+                    if (turret.atTargetPosition()) {
+                        turret.set(0);
+                        if (OpModeReference.getInstance().limelightSubsystem.resultIsValid) {
 
+                        }
                     }
                 }
-            }
+            } else {
+                if (!(globals.getRobotState() == RobotState.INIT) && !override) {
+                    if (OpModeReference.getInstance().limelightSubsystem.resultIsValid) {
+                        turret.set(0);
+                        manualTurretControl(OpModeReference.getInstance().getGamePad2().getRightX());
+                    }
+                    else if (Math.abs(OpModeReference.getInstance().limelightSubsystem.angle)>0.01) {
+                        turret.set(error*kP+errorIntegral*kI+errorDerivative*kD);
+                    } else {
+                        manualTurretControl(OpModeReference.getInstance().getGamePad2().getRightX());
+                        turret.setTargetPosition(OpModeReference.getInstance().outtakeSubSystem.turret.getCurrentPosition());
+                        turret.set(turretPower);
+                        if (turret.atTargetPosition()) {
+                            turret.set(0);
+                        }
+                    }
 
-//            if (!(globals.getRobotState() == RobotState.INIT) && !override) {
-//                if (OpModeReference.getInstance().limelightSubsystem.resultIsValid) {
-//                    turret.set(0);
-//                    manualTurretControl(OpModeReference.getInstance().getGamePad2().getRightX());
-//                }
-//                else if (Math.abs(OpModeReference.getInstance().limelightSubsystem.angle)>0.01) {
-//                    turret.set(error*kP+errorIntegral*kI+errorDerivative*kD);
-//                } else {
-//                        manualTurretControl(OpModeReference.getInstance().getGamePad2().getRightX());
-//                        turret.setTargetPosition(OpModeReference.getInstance().outtakeSubSystem.turret.getCurrentPosition());
-//                        turret.set(turretPower);
-//                        if (turret.atTargetPosition()) {
-//                            turret.set(0);
-//                        }
-//                    }
-//
-//                }
+                }
+            }
 
 
             if (globals.getRobotState() == RobotState.OUTTAKE) {
@@ -333,6 +336,10 @@ public class Outtake extends SubsystemBase {
             new InstantCommand(()-> override = false));
     }
 
+    public InstantCommand toggleTurretAlignmentInput() {
+        return new InstantCommand(()->usePedro=!usePedro);
+    }
+
     public void manualTurretControl(double joyStickValue) {
         turret.setTargetPosition(turret.getCurrentPosition()+(int)joyStickValue*30);
     }
@@ -346,5 +353,6 @@ public class Outtake extends SubsystemBase {
         OpModeReference.getInstance().getTelemetry().addData("Current Turret Pos", turret.getCurrentPosition());
         OpModeReference.getInstance().getTelemetry().addData("Target Turret Pos", turretTargetPos);
         OpModeReference.getInstance().getTelemetry().addData("Mode", mode);
+        OpModeReference.getInstance().getTelemetry().addData("Using Pedro??", usePedro);
     }
 }
