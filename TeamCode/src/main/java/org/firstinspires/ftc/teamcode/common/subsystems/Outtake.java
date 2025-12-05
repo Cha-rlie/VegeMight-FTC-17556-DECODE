@@ -112,6 +112,13 @@ public class Outtake extends SubsystemBase {
             if (OpModeReference.getInstance().globalsSubSystem.getRobotState() != RobotState.OUTTAKE) {
                 timerOn = false;
             }
+            if (allowShoot) {
+                gate.setPosition(gatePosOpen);
+                transfer.set(transferPower);
+            } else {
+                gate.setPosition(gatePosClosed);
+                transfer.set(transferStopPower);
+            }
             timePrevious=timenow;
             timenow=Timer.nanoseconds();
             //Timer
@@ -127,8 +134,37 @@ public class Outtake extends SubsystemBase {
             // Turret stuff
             if (globals.getRobotState() != RobotState.INIT && !override) {
                 double robotAngle = Math.toDegrees(OpModeReference.getInstance().pedroPathing.getHeading());
-                double requiredAngle = OpModeReference.getInstance().kalmanfilter.ReqAngle;
-                targetTurretAngle = (int) (robotAngle - requiredAngle);
+                if (robotAngle < -10) {
+                    robotAngle = robotAngle+180;
+                    double requiredAngle = OpModeReference.getInstance().kalmanfilter.ReqAngle;
+                    if ((int) (robotAngle- requiredAngle)<-135) {
+                        targetTurretAngle = -135;
+                    } else if ((int) (robotAngle- requiredAngle)>135) {
+                        targetTurretAngle = 135;
+                    } else {
+                        targetTurretAngle = (int) (robotAngle- requiredAngle);
+                    }
+                } else if (robotAngle > 10){
+                    robotAngle = robotAngle-180;
+                    double requiredAngle = OpModeReference.getInstance().kalmanfilter.ReqAngle;
+                    if ((int) (robotAngle- requiredAngle)<-135) {
+                        targetTurretAngle = -135;
+                    } else if ((int) (robotAngle- requiredAngle)>135) {
+                        targetTurretAngle = 135;
+                    } else {
+                        targetTurretAngle = (int) (robotAngle- requiredAngle);
+                    }
+                }
+
+
+
+
+                // Take Kalman Filter angle (pi to -pi)
+
+                // Find Robot Angle -> (pi to -pi) given
+                // Convert to Turret angle -> (pi to -pi) 180+180 -> if RA > 0; angle = RA-180; else +180
+
+
                 // Spin to the angle given
                 turretTargetPos = (int) (ticksPerTurretDegree*targetTurretAngle);
                 turret.setTargetPosition(turretTargetPos);
@@ -213,13 +249,6 @@ public class Outtake extends SubsystemBase {
                     hoodL.setPosition(hoodangle);
                     hoodR.setPosition(hoodangle);
                 }
-                if (allowShoot) {
-                    gate.setPosition(gatePosOpen);
-                    transfer.set(transferPower);
-                } else {
-                    gate.setPosition(gatePosClosed);
-                    transfer.set(transferStopPower);
-                }
                 /*if (!timerOn) {
                     timerOn = !timerOn;
                     speedUpTimer.reset();
@@ -237,10 +266,12 @@ public class Outtake extends SubsystemBase {
                     transfer.set(transferStopPower);
                     gate.setPosition(gatePosClosed);
                     flywheel.setVelocity(flywheelVelocity*0.85);
+                    allowShoot = false;
             } else if (globals.getRobotState()==RobotState.DEFENSE){
                 flywheel.setVelocity(0);
                 transfer.set(transferStopPower);
                 gate.setPosition(gatePosClosed);
+                allowShoot = false;
             } else {
                 flywheel.setVelocity(flywheelVelocity*0.85);
             }
