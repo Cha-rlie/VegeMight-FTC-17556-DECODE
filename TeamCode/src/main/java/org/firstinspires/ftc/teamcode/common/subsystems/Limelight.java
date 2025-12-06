@@ -71,9 +71,6 @@ public class Limelight extends SubsystemBase {
                 //calculate distance
                 distance = (goalHeightInches - limelightLensHeightInches) / Math.tan(angleToGoalRadians);
                 angle = limelight.getLatestResult().getTx();
-                if (OpModeReference.getInstance().isRedAlliance) {
-                    angle += redAngleOffset;
-                }
                 if (angle != 0) {
                     lastAngle = angle;
                 }

@@ -1,5 +1,7 @@
 package org.firstinspires.ftc.teamcode.common.subsystems;
 
+import android.graphics.Path;
+
 import com.arcrobotics.ftclib.command.InstantCommand;
 import com.arcrobotics.ftclib.command.PerpetualCommand;
 import com.arcrobotics.ftclib.command.RunCommand;
@@ -13,11 +15,14 @@ import com.bylazar.configurables.annotations.Configurable;
 import com.pedropathing.geometry.Pose;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
+import com.qualcomm.robotcore.util.Range;
 
 import org.firstinspires.ftc.teamcode.common.OpModeReference;
 import org.firstinspires.ftc.teamcode.common.util.Globals;
 import org.firstinspires.ftc.teamcode.common.util.RobotState;
 import org.firstinspires.ftc.teamcode.common.util.UpdateAndPowerScheduler;
+
+import java.util.Objects;
 
 @Configurable
 public class Outtake extends SubsystemBase {
@@ -30,6 +35,7 @@ public class Outtake extends SubsystemBase {
     Pose redGoalPose = new Pose(144, 144, 0);
     Pose blueGoalPose = new Pose(0, 144, 0);
     Pose targetGoalPose = redGoalPose;
+    int turretCurrentAngle = 0;
     Servo hoodL;
     Servo hoodR;
     Servo gate;
@@ -38,7 +44,7 @@ public class Outtake extends SubsystemBase {
     public static int flywheelVelocity = 1000;
     public static double hoodangle = 0;
     public static double hoodDownAngle = 0.22;
-    public static double turretPower = 0.1;
+    public static double turretPower = 0.35;
 
     public static double P = 0.05;
     public static int ticksPerTurretDegree = 650/90;
@@ -60,6 +66,11 @@ public class Outtake extends SubsystemBase {
 
     public long timePrevious = 0;
     public long timenow = 0;
+    public static double turretAutoCoeffs = 0.05;
+    public static double kp = 5;
+    public static double constantTurretP = 0.02;
+    String turretInputMode = "Pinpoint";
+    double newHeading = 60;
 
     Globals globals;
     UpdateAndPowerScheduler updateAndPowerScheduler;
@@ -76,7 +87,7 @@ public class Outtake extends SubsystemBase {
     boolean timerOn = false;
     public static int angleTime = 250;
     int[] lastVelocity = new int[8];
-    boolean usePedro = true;
+        public int counteraction = 0;
 
     public Outtake() {
         targetGoalPose = OpModeReference.getInstance().isRedAlliance ? redGoalPose : blueGoalPose;
@@ -130,76 +141,52 @@ public class Outtake extends SubsystemBase {
             //Calculate I
             errorIntegral += error*(timenow-timePrevious);
             //Calculate D
-            errorDerivative = (previousError-error)/(timenow-timePrevious);
+            errorDerivative = (error-previousError)/(timenow-timePrevious);
 
             // TURRET STUFF
-            if (usePedro) {
+            if (Objects.equals(turretInputMode, "Pinpoint")){
+                // Get robot heading (deg)
+                double robotAngle = Math.toDegrees(OpModeReference.getInstance().pedroPathing.getHeading());
+
+                // 180 deg cause turret is opposite to front of bot
+                robotAngle = wrapTurretAngle(robotAngle + 180);
+
+                double requiredAngle = wrapTurretAngle(OpModeReference.getInstance().kalmanfilter.ReqAngle);
+
+                // Get turret relative angle
+                double targetTurretAngle = wrapTurretAngle(robotAngle - requiredAngle);
+
+                // Limit for turret wiring hard stops
+                targetTurretAngle = Range.clip(targetTurretAngle, -90, 90);
+
+                // Convert to ticks
+                turretTargetPos = (int) targetTurretAngle * ticksPerTurretDegree + counteraction;
+
+                // Spin to the angle given
+                turret.setTargetPosition(turretTargetPos);
+                turret.set(error*kP+errorIntegral*kI+errorDerivative*kD);
+
+            } else if (Objects.equals(turretInputMode, "LimeLight")) {
                 if (globals.getRobotState() != RobotState.INIT && !override) {
-                    double robotAngle = Math.toDegrees(OpModeReference.getInstance().pedroPathing.getHeading());
-                    if (robotAngle < -10) {
-                        robotAngle = robotAngle+180;
-                        double requiredAngle = OpModeReference.getInstance().kalmanfilter.ReqAngle;
-                        if ((int) (robotAngle- requiredAngle)<-135) {
-                            targetTurretAngle = -135;
-                        } else if ((int) (robotAngle- requiredAngle)>135) {
-                            targetTurretAngle = 135;
-                        } else {
-                            targetTurretAngle = (int) (robotAngle- requiredAngle);
-                        }
-                    } else if (robotAngle > 10){
-                        robotAngle = robotAngle-180;
-                        double requiredAngle = OpModeReference.getInstance().kalmanfilter.ReqAngle;
-                        if ((int) (robotAngle- requiredAngle)<-135) {
-                            targetTurretAngle = -135;
-                        } else if ((int) (robotAngle- requiredAngle)>135) {
-                            targetTurretAngle = 135;
-                        } else {
-                            targetTurretAngle = (int) (robotAngle- requiredAngle);
-                        }
-                    }
-
-
-
-
-                    // Take Kalman Filter angle (pi to -pi)
-
-                    // Find Robot Angle -> (pi to -pi) given
-                    // Convert to Turret angle -> (pi to -pi) 180+180 -> if RA > 0; angle = RA-180; else +180
-
-
-                    // Spin to the angle given
-                    turretTargetPos = (int) (ticksPerTurretDegree*targetTurretAngle);
-                    turret.setTargetPosition(turretTargetPos);
-                    turret.set(error*kP+errorIntegral*kI+errorDerivative*kD);
-                /*if ((turretTargetPos - turret.getCurrentPosition() < 0) && !turret.atTargetPosition()) {
-                    turretPower = turretPower * -1;
-                }
-                turret.set(turretPower);*/
-                    if (turret.atTargetPosition()) {
+                    if (!OpModeReference.getInstance().limelightSubsystem.resultIsValid) { // If limelight not seen, then use GoBilda PinPoint
                         turret.set(0);
-                        if (OpModeReference.getInstance().limelightSubsystem.resultIsValid) {
-
-                        }
+                    }
+                    else if (OpModeReference.getInstance().limelightSubsystem.angle>0.1) {
+                        turret.set(constantTurretP*OpModeReference.getInstance().limelightSubsystem.angle);
+//                        int modifier = OpModeReference.getInstance().limelightSubsystem.angle < 0 ? 1 : -1;
+//                        turret.setTargetPosition((int)((modifier*OpModeReference.getInstance().limelightSubsystem.angle)*ticksPerTurretDegree)+counteraction);
+//                        turretPower = 0.35;
+//                        turret.set(turretPower);
+                    } else if (OpModeReference.getInstance().limelightSubsystem.angle<-0.1) {
+                        turret.set(constantTurretP*OpModeReference.getInstance().limelightSubsystem.angle);
+                    } else {
+                        turret.set(0);
+                        double newHeading = (double) (turret.getCurrentPosition() / ticksPerTurretDegree) - 180;
+                        OpModeReference.getInstance().pedroPathing.resetHeading(newHeading);
                     }
                 }
             } else {
-                if (!(globals.getRobotState() == RobotState.INIT) && !override) {
-                    if (OpModeReference.getInstance().limelightSubsystem.resultIsValid) {
-                        turret.set(0);
-                        manualTurretControl(OpModeReference.getInstance().getGamePad2().getRightX());
-                    }
-                    else if (Math.abs(OpModeReference.getInstance().limelightSubsystem.angle)>0.01) {
-                        turret.set(error*kP+errorIntegral*kI+errorDerivative*kD);
-                    } else {
-                        manualTurretControl(OpModeReference.getInstance().getGamePad2().getRightX());
-                        turret.setTargetPosition(OpModeReference.getInstance().outtakeSubSystem.turret.getCurrentPosition());
-                        turret.set(turretPower);
-                        if (turret.atTargetPosition()) {
-                            turret.set(0);
-                        }
-                    }
-
-                }
+                turret.set(0);
             }
 
 
@@ -207,7 +194,7 @@ public class Outtake extends SubsystemBase {
                 flywheel.setVelocity(flywheelVelocity);
                 flywheel.setRunMode(Motor.RunMode.VelocityControl);
                 if (mode.equals("Front Triangle")) {
-                    flywheelVelocity = (int) ((3.32105*(OpModeReference.getInstance().kalmanfilter.ReqDist))+1203.52797);
+                    flywheelVelocity = (int) ((3.32105*(OpModeReference.getInstance().kalmanfilter.ReqDist))+1293.52797);
                     //// could use lowest setting; trajectory cannot reach at lower distances then 100 i.e;
                     //regression
 
@@ -234,7 +221,7 @@ public class Outtake extends SubsystemBase {
                     hoodR.setPosition(hoodangle);
                 }
                 if (mode.equals("Back Triangle")) {
-                    flywheelVelocity = 1950;
+                    flywheelVelocity = 2000;
                     if (allowShoot && angleTimer.milliseconds() > angleTime) {
                         hoodangle = 0.22;
                         angleTimer.reset();
@@ -337,11 +324,42 @@ public class Outtake extends SubsystemBase {
     }
 
     public InstantCommand toggleTurretAlignmentInput() {
-        return new InstantCommand(()->usePedro=!usePedro);
+        return new InstantCommand(()-> {
+            if (Objects.equals(turretInputMode, "Pinpoint")) {
+                turret.setRunMode(Motor.RunMode.RawPower);
+                turretInputMode = "LimeLight";
+            } else if (Objects.equals(turretInputMode, "LimeLight")) {
+                turret.setRunMode(Motor.RunMode.VelocityControl);
+                turretInputMode = "Pinpoint";
+            }
+        });
+    }
+
+    public InstantCommand toggleNoTurret() {
+        return new InstantCommand(()->{
+            if (Objects.equals(turretInputMode, "Nothing")) {
+                turret.setRunMode(Motor.RunMode.VelocityControl);
+                turretInputMode = "Pinpoint";
+            } else {turretInputMode = "Nothing";}
+        });
     }
 
     public void manualTurretControl(double joyStickValue) {
         turret.setTargetPosition(turret.getCurrentPosition()+(int)joyStickValue*30);
+    }
+
+    public InstantCommand counteractTurretDrift(boolean pos) {
+        return new InstantCommand(() -> {
+            if (pos) {
+                counteraction += 20;
+            } else {
+                counteraction -= 20;
+            }
+        });
+    }
+
+    private double wrapTurretAngle(double ang) {
+        return ((ang + 180.0) % 360.0 + 360.0) % 360.0 - 180.0;
     }
 
     @Override
@@ -353,6 +371,6 @@ public class Outtake extends SubsystemBase {
         OpModeReference.getInstance().getTelemetry().addData("Current Turret Pos", turret.getCurrentPosition());
         OpModeReference.getInstance().getTelemetry().addData("Target Turret Pos", turretTargetPos);
         OpModeReference.getInstance().getTelemetry().addData("Mode", mode);
-        OpModeReference.getInstance().getTelemetry().addData("Using Pedro??", usePedro);
+        OpModeReference.getInstance().getTelemetry().addData("Turret Input System", turretInputMode);
     }
 }

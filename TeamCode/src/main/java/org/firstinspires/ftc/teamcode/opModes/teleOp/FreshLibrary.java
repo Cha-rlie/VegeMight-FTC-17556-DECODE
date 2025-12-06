@@ -90,14 +90,20 @@ public abstract class   FreshLibrary extends CommandOpMode {
         gamePad2.getGamepadButton(GamepadKeys.Button.DPAD_RIGHT).whenPressed(new InstantCommand(()-> endAutoPathing=true));
         gamePad2.getGamepadButton(GamepadKeys.Button.START).whenPressed((OpModeReference.getInstance().flagSubsystem.toggleFlag()));
         gamePad1.getGamepadButton(GamepadKeys.Button.LEFT_STICK_BUTTON).and(gamePad1.getGamepadButton(GamepadKeys.Button.RIGHT_STICK_BUTTON).whenPressed(OpModeReference.getInstance().globalsSubSystem.toggleDefense()));
+        gamePad2.getGamepadButton(GamepadKeys.Button.LEFT_STICK_BUTTON).and(gamePad2.getGamepadButton(GamepadKeys.Button.RIGHT_STICK_BUTTON).whenPressed(OpModeReference.getInstance().globalsSubSystem.toggleDefense()));
 
         // Emergencies
         // Reset bot pose
         gamePad1.getGamepadButton(GamepadKeys.Button.BACK).and(gamePad1.getGamepadButton(GamepadKeys.Button.START).whenPressed(OpModeReference.getInstance().pedroPathing.resetBotPose()));
-        gamePad2.getGamepadButton(GamepadKeys.Button.BACK).and(gamePad1.getGamepadButton(GamepadKeys.Button.START).whenPressed(OpModeReference.getInstance().pedroPathing.resetBotPose()));
+        gamePad2.getGamepadButton(GamepadKeys.Button.Y).whenPressed(OpModeReference.getInstance().pedroPathing.resetBotPose());
         // Spit stuck balls out backwards
         gamePad2.getGamepadButton(GamepadKeys.Button.DPAD_DOWN).whenPressed(OpModeReference.getInstance().intakeSubSystem.spitOut());
-        gamePad2.getGamepadButton(GamepadKeys.Button.DPAD_LEFT).whenPressed(OpModeReference.getInstance().outtakeSubSystem.toggleTurretAlignmentInput());
+        // Turret input control
+        gamePad2.getGamepadButton(GamepadKeys.Button.BACK).whenPressed(OpModeReference.getInstance().outtakeSubSystem.toggleTurretAlignmentInput());
+        gamePad2.getGamepadButton(GamepadKeys.Button.DPAD_UP).whenPressed(OpModeReference.getInstance().outtakeSubSystem.toggleNoTurret());
+        // Counteract Turret Drift
+        gamePad2.getGamepadButton(GamepadKeys.Button.DPAD_LEFT).whenPressed(OpModeReference.getInstance().outtakeSubSystem.counteractTurretDrift(false));
+        gamePad2.getGamepadButton(GamepadKeys.Button.DPAD_RIGHT).whenPressed(OpModeReference.getInstance().outtakeSubSystem.counteractTurretDrift(true));
     }
 
     /* Gamepad 2
@@ -110,7 +116,6 @@ public abstract class   FreshLibrary extends CommandOpMode {
     START -> FLAGGGGG!!!
     BACK -> Stuck Shoot
     RIGHT JOYSTICK X VALUE -> Manual turret control
-
      */
 
     public abstract void initalize();

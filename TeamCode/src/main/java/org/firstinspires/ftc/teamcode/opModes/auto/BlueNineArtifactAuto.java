@@ -100,11 +100,13 @@ public class BlueNineArtifactAuto extends CommandOpMode {
                 if (readyForNext) {
                     new SequentialCommandGroup(
                             new InstantCommand((()->readyForNext = false)),
+                            OpModeReference.getInstance().outtakeSubSystem.toggleTurretAlignmentInput(),
                             OpModeReference.getInstance().outtakeSubSystem.shootBackTriangle(),
                             OpModeReference.getInstance().globalsSubSystem.setRobotStateCommand(RobotState.OUTTAKE),
                             new WaitCommand(2000),
                             OpModeReference.getInstance().outtakeSubSystem.shoot(),
                             new WaitCommand(1000),
+                            OpModeReference.getInstance().outtakeSubSystem.toggleTurretAlignmentInput(),
                             OpModeReference.getInstance().globalsSubSystem.setRobotStateCommand(RobotState.INTAKE),
                             new InstantCommand(() -> readyForNext = true),
                             new InstantCommand(()->setPathState(1))
@@ -133,11 +135,13 @@ public class BlueNineArtifactAuto extends CommandOpMode {
                             new InstantCommand(()-> follower.pausePathFollowing()),
                             new InstantCommand(()->readyForNext=false),
                             new InstantCommand(() -> currentState = "Shooting"),
+                            OpModeReference.getInstance().outtakeSubSystem.toggleTurretAlignmentInput(),
                             OpModeReference.getInstance().outtakeSubSystem.shootBackTriangle(),
                             OpModeReference.getInstance().globalsSubSystem.setRobotStateCommand(RobotState.OUTTAKE),
                             new WaitCommand(1500),
                             OpModeReference.getInstance().outtakeSubSystem.shoot(),
                             new WaitCommand(1000),
+                            OpModeReference.getInstance().outtakeSubSystem.toggleTurretAlignmentInput(),
                             OpModeReference.getInstance().globalsSubSystem.setRobotStateCommand(RobotState.INTAKE),
                             new InstantCommand(() -> readyForNext = true),
                             new InstantCommand(()->setPathState(4))
@@ -165,11 +169,13 @@ public class BlueNineArtifactAuto extends CommandOpMode {
                     new SequentialCommandGroup(
                             new InstantCommand(()->readyForNext=false),
                             new InstantCommand(() -> currentState = "Shooting"),
+                            OpModeReference.getInstance().outtakeSubSystem.toggleTurretAlignmentInput(),
                             OpModeReference.getInstance().outtakeSubSystem.shootBackTriangle(),
                             OpModeReference.getInstance().globalsSubSystem.setRobotStateCommand(RobotState.OUTTAKE),
                             new WaitCommand(1500),
                             OpModeReference.getInstance().outtakeSubSystem.shoot(),
                             new WaitCommand(1000),
+                            OpModeReference.getInstance().outtakeSubSystem.toggleTurretAlignmentInput(),
                             OpModeReference.getInstance().globalsSubSystem.setRobotStateCommand(RobotState.INTAKE),
                             new InstantCommand(() -> readyForNext = true),
                             new InstantCommand(()->setPathState(7))

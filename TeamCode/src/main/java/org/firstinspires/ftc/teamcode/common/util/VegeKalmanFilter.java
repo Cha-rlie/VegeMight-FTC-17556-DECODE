@@ -5,6 +5,7 @@ import android.graphics.Path;
 import com.arcrobotics.ftclib.command.PerpetualCommand;
 import com.arcrobotics.ftclib.command.RunCommand;
 import com.arcrobotics.ftclib.command.SubsystemBase;
+import com.pedropathing.geometry.Pose;
 import com.qualcomm.hardware.gobilda.GoBildaPinpointDriver;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
@@ -114,5 +115,12 @@ public class VegeKalmanFilter extends SubsystemBase {
         OpModeReference.getInstance().getTelemetry().addData("Angle to Goal",ReqAngle);
         OpModeReference.getInstance().getTelemetry().addData("x Kalman",x);
         OpModeReference.getInstance().getTelemetry().addData("y Kalman",y);
+    }
+
+    public void reset(Pose newPose) {
+        x = newPose.getX();
+        y = newPose.getY();
+        Varx = 0.00001;
+        Vary = 0.00001;
     }
 }

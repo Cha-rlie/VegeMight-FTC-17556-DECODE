@@ -10,6 +10,7 @@ import com.pedropathing.geometry.Pose;
 
 import org.firstinspires.ftc.teamcode.common.OpModeReference;
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
+import org.opencv.video.KalmanFilter;
 
 @Configurable
 public class PedroPathing extends SubsystemBase {
@@ -18,6 +19,10 @@ public class PedroPathing extends SubsystemBase {
     public PedroPathing() {
         follower = Constants.createFollower(OpModeReference.getInstance().getHardwareMap());
         follower.setPose(OpModeReference.getInstance().getGlobalRobotPose());
+        try {
+            follower.poseTracker.getLocalizer().resetIMU();
+        } catch (InterruptedException ignored) {
+        }
         setDefaultCommand(new PerpetualCommand(localise()));
     }
 
@@ -65,9 +70,19 @@ public class PedroPathing extends SubsystemBase {
         return new InstantCommand(()->{
             if (OpModeReference.getInstance().isRedAlliance) {
                 follower.setPose(new Pose(0+(17.9/2), 0+(16.22/2), Math.toRadians(180)));
+                OpModeReference.getInstance().kalmanfilter.reset(new Pose(0+(17.9/2), 0+(16.22/2), Math.toRadians(180)));
             } else {
                 follower.setPose(new Pose(144-(17.9/2), 0+(16.22/2), 0));
+                OpModeReference.getInstance().kalmanfilter.reset(new Pose(144-(17.9/2), 0+(16.22/2), 0));
             }
+            OpModeReference.getInstance().outtakeSubSystem.counteraction = 0;
+        });
+    }
+
+    public InstantCommand resetHeading(double heading) {
+        return new InstantCommand(()->{
+            follower.setPose(new Pose(follower.getPose().getX(), follower.getPose().getY(), heading));
+            OpModeReference.getInstance().kalmanfilter.reset(new Pose(follower.getPose().getX(), follower.getPose().getY(), heading));
         });
     }
 
